@@ -1,0 +1,8 @@
+/byt
+(bytes 123)
+(bytes "yobro)
+(bytes "yobro")
+(byte "yobro")
+(byte "y")
+(byte '\y')
+(byte \y)
