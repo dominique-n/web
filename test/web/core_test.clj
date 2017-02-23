@@ -34,7 +34,7 @@
                    ly-c-url non-resource
                    google-com non-resource]
 
-    (future-facts "About `extract-html-text"
+    (facts "About `extract-html-text"
                   (extract-html-text true-html) => empty?
                   (extract-html-text true-content-html) => (just ["content1" "content2"])
                   )
