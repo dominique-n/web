@@ -12,22 +12,37 @@
             ))
 
 
+(defn true-html? [body]
+  (seq (re-seq #"(?s)<html.+<body" body)))
+
 (defn extract-html-text [body]
-  (-> body html/html-snippet (html/select [:html :body :p]) html/texts))
+  (clojure.string/join " "
+                       (-> body html/html-snippet 
+                           (html/select [:html :body]) html/texts)))
 
 (defn launch-async
-  [channel  [url & urls]]
-  (when url
+  ([channel urls] (launch-async #"^$" [] channel urls))
+  ([tailored-pat tailored-sel channel [url & urls]]
+   (let [tailored? (fn [body] (seq (re-seq tailored-pat body)))
+         extract (fn [body] (clojure.string/join 
+                              " " (-> body html/html-snippet 
+                                      (html/select tailored-sel) html/texts)))] 
+     (when url
     (http/get url 
               {:as :text
                :timeout 5000
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
               
               (fn  [{:keys  [status headers body error]}]
-                (let  [put-on-chan  (if error
-                                      [(json/generate-string  {:url url :headers headers :status status})]
-                                      (extract-html-text body))]
-                  (put! channel (csv/write-csv [put-on-chan]) (fn  [_]  (launch-async channel urls))))))))
+                (let  [put-on-chan  (cond
+                                        error {:url url :status status :msg error}
+                                        (not (string? body)) {:msg :formatted :url url :type (str (type body))}
+                                        (tailored? body) {:msg :tailored :url url
+                                                          :body (extract body)}
+                                        (true-html? body) {:msg :generic :body (extract-html-text body)
+                                                           :url url}
+                                        :else {:msg :unstructured :body body :url url})]
+                  (put! channel put-on-chan (fn  [_]  (launch-async tailored-pat tailored-sel channel urls))))))))))
 
 (defn process-async
   [channel func]
