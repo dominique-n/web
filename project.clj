@@ -8,7 +8,11 @@
                  [http-kit.fake  "0.2.1"]
                  [org.clojure/core.async  "0.2.395"]
                  ]
-  :profiles {:dev {:dependencies [[midje "1.7.0"]]}
+  :profiles {:dev {:dependencies [[midje "1.7.0"]
+                                  [test-with-files "0.1.1"] 
+                                  ]
+                   :resource-paths ["test/resources"]
+                   }
              ;; You can add dependencies that apply to `lein midje` below.
              ;; An example would be changing the logging destination for test runs.
              :midje {}})
