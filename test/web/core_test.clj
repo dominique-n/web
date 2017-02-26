@@ -46,10 +46,8 @@
          (extract-html-text true-content-html) => #(re-seq #"content1content2" %)
          )
 
-  (facts "About `launch-async"
-         (let [channel (chan 1)
-               true-html-p? #(seq (re-seq #"<html.+<body.+<p\W"))]
-
+  (let [*launch-async (partial launch-async insert!)]
+    (facts "About `launch-async"
            (with-fake-http [error-url error]
              (launch-async channel [error-url]))
            (<!! channel) => {:status 401 :msg "error" :url error-url}
@@ -69,34 +67,9 @@
            (with-fake-http [only-txt-url only-txt]
              (launch-async channel [only-txt-url]))
            (<!! channel) => {:body "only text" :url only-txt-url :msg :unstructured}
-           )
-         )
+           ))
 
-  (with-files [["/out.json" ""]]
-    (facts "About `process-async"
-           (let [channel (chan)
-                 file (io/resource (str public-dir "/out.json"))
-                 write #(spit file (str % "\n") :append true)]
-             (doseq [m ["m1" "m2"]] (>!! channel m))
-             (async-blocker process-async channel write) 
-             (clojure.string/split-lines (slurp file)) => (just ["m1" "m2"] :in-any-order)
-             )
-           )
-    )
-
-  (facts "About `http-gets-async"
-         (with-files [["/out.json" ""]]
-           (let [channel (chan)
-                 urls [true-html-url true-html-content-url error-url]
-                 file (io/resource (str public-dir "/out.json"))
-                 write #(spit file (str % "\n") :append true)]
-             (async-blocker http-gets-async write urls)
-             ;1 => 1
-             (clojure.string/split-lines (slurp file)) => (just ["m1" "m2"] :in-any-order)
-
-             )
-           )
-         )
+  
 
 
   )

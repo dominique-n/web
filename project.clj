@@ -6,6 +6,11 @@
                  [enlive  "1.1.6"]
                  [http-kit  "2.2.0"] ;event driven - concurrency
                  [http-kit.fake  "0.2.1"]
+                 [org.clojure/java.jdbc  "0.7.0-alpha1"]
+                 ;[java-jdbc/dsl  "0.1.3"]
+                 [org.xerial/sqlite-jdbc  "3.16.1"]
+                 [org.slf4j/slf4j-nop "1.7.22"]
+                 ;[com.jolbox/bonecp  "0.8.0.RELEASE"]
                  [org.clojure/core.async  "0.2.395"]
                  ]
   :profiles {:dev {:dependencies [[midje "1.7.0"]

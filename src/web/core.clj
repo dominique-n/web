@@ -3,9 +3,10 @@
             [clojure-csv.core :as csv]
             [cheshire.core :as json]
             [net.cgrand.enlive-html :as html]
-            ;[clj-http.client :as http0]
+            ;[clj-http.client :as http]
+            [clojure.java.jdbc :as jdbc]
             [org.httpkit.client :as http]
-            [clojure.core.async :refer [go go-loop chan <!! <! put!]]
+            ;[clojure.core.async :refer [go go-loop chan <!! <! put!]]
             ;[clojure.string :as str]
             ;[format-data.core :refer :all]
             ;[lazy-files.core :refer [lazy-read]]
@@ -20,42 +21,59 @@
                        (-> body html/html-snippet 
                            (html/select [:html :body]) html/texts)))
 
-(defn launch-async
-  ([channel urls] (launch-async #"^$" [] channel urls))
-  ([tailored-pat tailored-sel channel [url & urls]]
-   (let [tailored? (fn [body] (seq (re-seq tailored-pat body)))
-         extract (fn [body] (clojure.string/join 
-                              " " (-> body html/html-snippet 
-                                      (html/select tailored-sel) html/texts)))] 
-     (when url
+(defn tailored? [body] 
+  (seq (re-seq tailored-pat body)))
+
+(defn extract [body] 
+  (clojure.string/join 
+    " " (-> body html/html-snippet 
+            (html/select tailored-sel) html/texts)))
+
+(def db-spec
+  {:classname   "org.sqlite.JDBC"
+   :subprotocol  "sqlite"
+   :subname     "sqlite.db"
+   })
+
+(defn create-table [table-name]
+  (jdbc/db-do-commands 
+    db-spec 
+    (jdbc/create-table-ddl 
+      table-name
+      [[:primary_id :integer "PRIMARY KEY AUTOINCREMENT"]
+      [:url :text]
+      [:data :text]])))
+
+(def insert! (partial jdbc/insert! db-spec))
+
+(defn table-exists? [table-name]
+  (try (do (jdbc/query db-spec [(str "select * from " table-name " limit 1;")]) true)
+                 (catch org.sqlite.SQLiteException e false)))
+
+(defn launch-async [f urls]
+  (doseq [url urls]
     (http/get url 
               {:as :text
                :timeout 5000
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
-              
+
               (fn  [{:keys  [status headers body error]}]
-                (let  [put-on-chan  (cond
-                                        error {:url url :status status :msg error}
-                                        (not (string? body)) {:msg :formatted :url url :type (str (type body))}
-                                        (tailored? body) {:msg :tailored :url url
-                                                          :body (extract body)}
-                                        (true-html? body) {:msg :generic :body (extract-html-text body)
-                                                           :url url}
-                                        :else {:msg :unstructured :body body :url url})]
-                  (put! channel put-on-chan (fn  [_]  (launch-async tailored-pat tailored-sel channel urls))))))))))
+                (let  [data (json/generate-string
+                              (cond
+                                error {:url url :status status :msg error}
+                                (not (string? body)) {:msg :formatted :url url :type (str (type body))}
+                                (tailored? body) {:msg :tailored :url url
+                                                  :body (extract body)}
+                                (true-html? body) {:msg :generic :body (extract-html-text body)
+                                                   :url url}
+                                :else {:msg :unstructured :body body :url url}))]
+                  (f {:url url :data data}))))))
 
-(defn process-async
-  [channel func]
-  (go-loop  []
-           (when-let  [response  (<! channel)]
-             (func response)
-             (recur))))
 
-;(defn process-async-nested [& args]
-  ;(apply process-async args))
-
-(defn http-gets-async
-  [func urls]
-  (let  [channel  (chan 1000)]
-    (launch-async channel urls)
-    (process-async channel func)))
+(defn -main [filename]
+  (let [table-name (clojure.string/replace filename #"\.\w+$" "")]
+    (assert (table-exists? table-name) 
+            (str "table `" table-name "` should not exist"))
+    (create-table table-name)
+    (launch-async (partial insert! table-name) urls)
+    ))
