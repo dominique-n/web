@@ -13,7 +13,7 @@
 
 
 (defn async-blocker [fun & args]
-  (let [chan-test (chan 1)]
+  (let [chan-test (chan)]
     (go (>! chan-test (apply fun args)))
     (<!! chan-test)))
 
@@ -74,24 +74,29 @@
 
   (with-files [["/out.json" ""]]
     (facts "About `process-async"
-           (let [channel (chan 2)
+           (let [channel (chan)
                  file (io/resource (str public-dir "/out.json"))
                  write #(spit file (str % "\n") :append true)]
              (doseq [m ["m1" "m2"]] (>!! channel m))
              (async-blocker process-async channel write) 
              (clojure.string/split-lines (slurp file)) => (just ["m1" "m2"] :in-any-order)
              )
-           ))
+           )
+    )
 
-  (go
-    (future-facts "About `http-gets-async"
-                  (let [channel (chan 3)
-                        urls [true-html-url true-html-content-url error-url]
-                        func identity]
-                    (http-gets-async func urls) => (just ["\n" "content1,content2\n"
-                                                          #(re-seq #"^:url.+:headers.+400" %)]
-                                                         :in-any-order)
-                    )))
+  (facts "About `http-gets-async"
+         (with-files [["/out.json" ""]]
+           (let [channel (chan)
+                 urls [true-html-url true-html-content-url error-url]
+                 file (io/resource (str public-dir "/out.json"))
+                 write #(spit file (str % "\n") :append true)]
+             (async-blocker http-gets-async write urls)
+             ;1 => 1
+             (clojure.string/split-lines (slurp file)) => (just ["m1" "m2"] :in-any-order)
+
+             )
+           )
+         )
 
 
   )

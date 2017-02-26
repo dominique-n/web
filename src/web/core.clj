@@ -51,6 +51,9 @@
              (func response)
              (recur))))
 
+;(defn process-async-nested [& args]
+  ;(apply process-async args))
+
 (defn http-gets-async
   [func urls]
   (let  [channel  (chan 1000)]
