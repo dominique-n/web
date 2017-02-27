@@ -9,6 +9,7 @@
             [org.httpkit.client :as http]
             [org.httpkit.fake :refer :all]
             [clojure.core.async :refer [go chan >!! >! <!! <! put!]]
+            [clojure.java.jdbc :as jdbc]
             ))
 
 
@@ -46,30 +47,56 @@
          (extract-html-text true-content-html) => #(re-seq #"content1content2" %)
          )
 
-  (let [*launch-async (partial launch-async insert!)]
-    (facts "About `launch-async"
-           (with-fake-http [error-url error]
-             (launch-async channel [error-url]))
-           (<!! channel) => {:status 401 :msg "error" :url error-url}
+  (against-background 
+    [(after :checks (io/delete-file "sqlite.db" true))]
+    (facts "About `create-table"
+           (do (create-table "table_name")
+               (first (jdbc/query db-spec ["select count(1) from table_name;"])) => #(-> % vals first zero?))
+           )
 
-           (with-fake-http [formatted-doc-url formatted-doc]
-             (launch-async channel [formatted-doc-url]))
-           (<!! channel) => {:msg :formatted :url formatted-doc-url :type "class java.lang.Long"}
+    (facts "About `insert!"
+           (do (create-table "table_name")
+               (insert! "table_name" {:data "inserted"})
+               (first (jdbc/query db-spec ["select count(1) from table_name;"])) => #(-> % vals first pos?)))
 
-           (with-fake-http [true-html-content-url true-content-html]
-             (launch-async #"(?s)<html.+<body.+<" [:html :body :p] channel [true-html-content-url]))
-           (<!! channel) => {:body "content1 content2" :url true-html-content-url :msg :tailored}
+    (facts "About `table-exists?"
+           (table-exists? "table_name") => falsey
+           (do (create-table "table_name")
+               (table-exists? "table_name") => truthy)
+           )
+    )
 
-           (with-fake-http [true-html-url true-html]
-             (launch-async channel [true-html-url]))
-           (<!! channel) => {:body "html" :url true-html-url :msg :generic}
+  ;(let [*launch-async (partial launch-async insert!)
+  ;p! (fn [channel content] (put! channel (json/parse-string content true)))]
+  ;(facts "About `launch-async"
+  ;(let [channel (chan)
+  ;f (partial p! channel)]
+  ;(with-fake-http [error-url error]
+  ;(launch-async f [error-url]))
+  ;(<!! channel) => {:status 401 :msg "error" :url error-url})
 
-           (with-fake-http [only-txt-url only-txt]
-             (launch-async channel [only-txt-url]))
-           (<!! channel) => {:body "only text" :url only-txt-url :msg :unstructured}
-           ))
+           ;(let [channel (chan)
+                 ;f (partial p! channel)]
+           ;(with-fake-http [formatted-doc-url formatted-doc]
+             ;(launch-async f [formatted-doc-url]))
+           ;(<!! channel) => {:msg :formatted :url formatted-doc-url :type "class java.lang.Long"})
 
-  
+           ;;(let [channel (chan)
+                 ;;f (partial p! channel)]
+           ;;(with-fake-http [true-html-content-url true-content-html]
+             ;;(launch-async #"(?s)<html.+<body.+<" [:html :body :p] channel [true-html-content-url]))
+           ;;(<!! channel) => {:body "content1 content2" :url true-html-content-url :msg :tailored})
 
+           ;(let [channel (chan)
+                 ;f (partial p! channel)]
+           ;(with-fake-http [true-html-url true-html]
+             ;(launch-async f [true-html-url]))
+           ;(<!! channel) => {:body "html" :url true-html-url :msg :generic})
 
+           ;(let [channel (chan)
+                 ;f (partial p! channel)]
+           ;(with-fake-http [only-txt-url only-txt]
+             ;(launch-async f [only-txt-url]))
+           ;(<!! channel) => {:body "only text" :url only-txt-url :msg :unstructured}
+           ;))
   )

@@ -22,12 +22,12 @@
                            (html/select [:html :body]) html/texts)))
 
 (defn tailored? [body] 
-  (seq (re-seq tailored-pat body)))
+  (seq (re-seq #"(?s)<html.+<body.+<p" body)))
 
 (defn extract [body] 
   (clojure.string/join 
     " " (-> body html/html-snippet 
-            (html/select tailored-sel) html/texts)))
+            (html/select [:html :body :p]) html/texts)))
 
 (def db-spec
   {:classname   "org.sqlite.JDBC"
@@ -41,7 +41,7 @@
     (jdbc/create-table-ddl 
       table-name
       [[:primary_id :integer "PRIMARY KEY AUTOINCREMENT"]
-      [:url :text]
+      [:timestamp :datetime "DEFAULT CURRENT_TIMESTAMP"]
       [:data :text]])))
 
 (def insert! (partial jdbc/insert! db-spec))
@@ -50,30 +50,30 @@
   (try (do (jdbc/query db-spec [(str "select * from " table-name " limit 1;")]) true)
                  (catch org.sqlite.SQLiteException e false)))
 
-(defn launch-async [f urls]
-  (doseq [url urls]
-    (http/get url 
-              {:as :text
-               :timeout 5000
-               :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
+;(defn launch-async [f urls]
+  ;(doseq [url urls]
+    ;(http/get url 
+              ;{:as :text
+               ;:timeout 5000
+               ;:user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
 
-              (fn  [{:keys  [status headers body error]}]
-                (let  [data (json/generate-string
-                              (cond
-                                error {:url url :status status :msg error}
-                                (not (string? body)) {:msg :formatted :url url :type (str (type body))}
-                                (tailored? body) {:msg :tailored :url url
-                                                  :body (extract body)}
-                                (true-html? body) {:msg :generic :body (extract-html-text body)
-                                                   :url url}
-                                :else {:msg :unstructured :body body :url url}))]
-                  (f {:url url :data data}))))))
+              ;(fn  [{:keys  [status headers body error]}]
+                ;(let  [data (json/generate-string
+                              ;(cond
+                                ;error {:url url :status status :msg error}
+                                ;(not (string? body)) {:msg :formatted :url url :type (str (type body))}
+                                ;(tailored? body) {:msg :tailored :url url
+                                                  ;:body (extract body)}
+                                ;(true-html? body) {:msg :generic :body (extract-html-text body)
+                                                   ;:url url}
+                                ;:else {:msg :unstructured :body body :url url}))]
+                  ;(f data))))))
 
 
-(defn -main [filename]
-  (let [table-name (clojure.string/replace filename #"\.\w+$" "")]
-    (assert (table-exists? table-name) 
-            (str "table `" table-name "` should not exist"))
-    (create-table table-name)
-    (launch-async (partial insert! table-name) urls)
-    ))
+;(defn -main [filename]
+  ;(let [table-name (clojure.string/replace filename #"\.\w+$" "")]
+    ;(assert (table-exists? table-name) 
+            ;(str "table `" table-name "` should not exist"))
+    ;(create-table table-name)
+    ;(launch-async (partial insert! table-name) urls)
+    ;))
