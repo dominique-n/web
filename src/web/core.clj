@@ -89,12 +89,3 @@
                :timeout 5000
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
               (handler url)))
-
-
-;(defn -main [filename]
-  ;(let [table-name (clojure.string/replace filename #"\.\w+$" "")]
-    ;(assert (table-exists? table-name) 
-            ;(str "table `" table-name "` should not exist"))
-    ;(create-table table-name)
-    ;(launch-async (partial insert! table-name) urls)
-    ;))
