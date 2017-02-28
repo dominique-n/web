@@ -50,24 +50,37 @@
   (try (do (jdbc/query db-spec [(str "select * from " table-name " limit 1;")]) true)
                  (catch org.sqlite.SQLiteException e false)))
 
-;(defn launch-async [f urls]
-  ;(doseq [url urls]
-    ;(http/get url 
-              ;{:as :text
-               ;:timeout 5000
-               ;:user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
+(defn cb0 [f url]
+  (fn [{:keys  [status headers body error]}]
+    (let  [data (cond
+                  error {:url url :status status :msg error}
+                  (not (string? body)) {:msg :formatted :url url :type (str (type body))}
+                  (tailored? body) {:msg :tailored :url url
+                                    :body (extract body)}
+                  (true-html? body) {:msg :generic :body (extract-html-text body)
+                                     :url url}
+                  :else {:msg :unstructured :body body :url url})]
+      (f data))))
 
-              ;(fn  [{:keys  [status headers body error]}]
-                ;(let  [data (json/generate-string
-                              ;(cond
-                                ;error {:url url :status status :msg error}
-                                ;(not (string? body)) {:msg :formatted :url url :type (str (type body))}
-                                ;(tailored? body) {:msg :tailored :url url
-                                                  ;:body (extract body)}
-                                ;(true-html? body) {:msg :generic :body (extract-html-text body)
-                                                   ;:url url}
-                                ;:else {:msg :unstructured :body body :url url}))]
-                  ;(f data))))))
+(defn basic-cb 
+  ([url] (basic-cb identity url))
+  ([f url]
+  (fn [{:keys  [status headers body error]}]
+    (let  [data (cond
+                    error {:url url :status status :msg error}
+                    (not (string? body)) {:msg :formatted :url url :type (str (type body))}
+                    (true-html? body) {:msg :generic :body (extract-html-text body)
+                                       :url url}
+                    :else {:msg :unstructured :body body :url url})]
+      (f data)))))
+
+
+(defn launch-async [callback url]
+  (http/get url 
+              {:as :text
+               :timeout 5000
+               :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
+              (callback url)))
 
 
 ;(defn -main [filename]

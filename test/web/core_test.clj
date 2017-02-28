@@ -66,6 +66,18 @@
            )
     )
 
+  (facts "About `basic-cb"
+         ((basic-cb error-url) error)  => (-> error (assoc :url error-url :msg "error") (dissoc :error))
+         ((basic-cb formatted-doc-url) formatted-doc) => (contains {:url formatted-doc-url 
+                                                                    :msg :formatted 
+                                                                    :type "class java.lang.Long"})
+         ((basic-cb true-html-url) {:body true-html}) => {:body "html" :url true-html-url :msg :generic}
+         ((basic-cb true-html-content-url) {:body true-content-html}) => (contains {:body (contains "content1content2") 
+                                                                                    :url true-html-content-url 
+                                                                                    :msg :generic})
+         ((basic-cb only-txt-url) only-txt) => {:body "only text" :url only-txt-url :msg :unstructured}
+         )
+
   ;(let [*launch-async (partial launch-async insert!)
   ;p! (fn [channel content] (put! channel (json/parse-string content true)))]
   ;(facts "About `launch-async"
