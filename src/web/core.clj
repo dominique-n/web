@@ -29,6 +29,10 @@
     " " (-> body html/html-snippet 
             (html/select [:html :body :p]) html/texts)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;sqlite
+
 (def db-spec
   {:classname   "org.sqlite.JDBC"
    :subprotocol  "sqlite"
@@ -50,6 +54,10 @@
   (try (do (jdbc/query db-spec [(str "select * from " table-name " limit 1;")]) true)
                  (catch org.sqlite.SQLiteException e false)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;asyc http
+
 (defn cb0 [f url]
   (fn [{:keys  [status headers body error]}]
     (let  [data (cond
@@ -64,7 +72,7 @@
 
 (defn basic-cb 
   ([url] (basic-cb identity url))
-  ([f url]
+  ([callback url]
   (fn [{:keys  [status headers body error]}]
     (let  [data (cond
                     error {:url url :status status :msg error}
@@ -72,15 +80,15 @@
                     (true-html? body) {:msg :generic :body (extract-html-text body)
                                        :url url}
                     :else {:msg :unstructured :body body :url url})]
-      (f data)))))
+      (callback data)))))
 
 
-(defn launch-async [callback url]
+(defn launch-async [handler url]
   (http/get url 
               {:as :text
                :timeout 5000
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
-              (callback url)))
+              (handler url)))
 
 
 ;(defn -main [filename]
