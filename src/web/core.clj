@@ -70,8 +70,8 @@
                   :else {:msg :unstructured :body body :url url})]
       (f data))))
 
-(defn basic-cb 
-  ([url] (basic-cb identity url))
+(defn basic-handler 
+  ([url] (basic-handler identity url))
   ([callback url]
   (fn [{:keys  [status headers body error]}]
     (let  [data (cond

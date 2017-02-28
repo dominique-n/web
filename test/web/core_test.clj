@@ -66,49 +66,49 @@
            )
     )
 
-  (facts "About `basic-cb"
-         ((basic-cb error-url) error)  => (-> error (assoc :url error-url :msg "error") (dissoc :error))
-         ((basic-cb formatted-doc-url) formatted-doc) => (contains {:url formatted-doc-url 
+  (facts "About `basic-handler"
+         ((basic-handler error-url) error)  => (-> error (assoc :url error-url :msg "error") (dissoc :error))
+         ((basic-handler formatted-doc-url) formatted-doc) => (contains {:url formatted-doc-url 
                                                                     :msg :formatted 
                                                                     :type "class java.lang.Long"})
-         ((basic-cb true-html-url) {:body true-html}) => {:body "html" :url true-html-url :msg :generic}
-         ((basic-cb true-html-content-url) {:body true-content-html}) => (contains {:body (contains "content1content2") 
+         ((basic-handler true-html-url) {:body true-html}) => {:body "html" :url true-html-url :msg :generic}
+         ((basic-handler true-html-content-url) {:body true-content-html}) => (contains {:body (contains "content1content2") 
                                                                                     :url true-html-content-url 
                                                                                     :msg :generic})
-         ((basic-cb only-txt-url) only-txt) => {:body "only text" :url only-txt-url :msg :unstructured}
+         ((basic-handler only-txt-url) only-txt) => {:body "only text" :url only-txt-url :msg :unstructured}
          )
 
   ;(let [*launch-async (partial launch-async insert!)
-  ;p! (fn [channel content] (put! channel (json/parse-string content true)))]
-  ;(facts "About `launch-async"
-  ;(let [channel (chan)
-  ;f (partial p! channel)]
-  ;(with-fake-http [error-url error]
-  ;(launch-async f [error-url]))
-  ;(<!! channel) => {:status 401 :msg "error" :url error-url})
+        ;p! (fn [channel content] (put! channel (json/parse-string content true)))]
+    ;(facts "About `launch-async"
+           ;(let [channel (chan)
+                 ;f (partial p! channel)]
+             ;(with-fake-http [error-url error]
+               ;(launch-async f [error-url]))
+             ;(<!! channel) => {:status 401 :msg "error" :url error-url})
 
            ;(let [channel (chan)
                  ;f (partial p! channel)]
-           ;(with-fake-http [formatted-doc-url formatted-doc]
-             ;(launch-async f [formatted-doc-url]))
-           ;(<!! channel) => {:msg :formatted :url formatted-doc-url :type "class java.lang.Long"})
+             ;(with-fake-http [formatted-doc-url formatted-doc]
+               ;(launch-async f [formatted-doc-url]))
+             ;(<!! channel) => {:msg :formatted :url formatted-doc-url :type "class java.lang.Long"})
 
            ;;(let [channel (chan)
-                 ;;f (partial p! channel)]
+           ;;f (partial p! channel)]
            ;;(with-fake-http [true-html-content-url true-content-html]
-             ;;(launch-async #"(?s)<html.+<body.+<" [:html :body :p] channel [true-html-content-url]))
+           ;;(launch-async #"(?s)<html.+<body.+<" [:html :body :p] channel [true-html-content-url]))
            ;;(<!! channel) => {:body "content1 content2" :url true-html-content-url :msg :tailored})
 
            ;(let [channel (chan)
                  ;f (partial p! channel)]
-           ;(with-fake-http [true-html-url true-html]
-             ;(launch-async f [true-html-url]))
-           ;(<!! channel) => {:body "html" :url true-html-url :msg :generic})
+             ;(with-fake-http [true-html-url true-html]
+               ;(launch-async f [true-html-url]))
+             ;(<!! channel) => {:body "html" :url true-html-url :msg :generic})
 
            ;(let [channel (chan)
                  ;f (partial p! channel)]
-           ;(with-fake-http [only-txt-url only-txt]
-             ;(launch-async f [only-txt-url]))
-           ;(<!! channel) => {:body "only text" :url only-txt-url :msg :unstructured}
-           ;))
-  )
+             ;(with-fake-http [only-txt-url only-txt]
+               ;(launch-async f [only-txt-url]))
+             ;(<!! channel) => {:body "only text" :url only-txt-url :msg :unstructured}
+             ;))
+    )
