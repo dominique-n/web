@@ -48,8 +48,10 @@
          )
 
   (against-background 
-    [(after :checks (io/delete-file "sqlite.db" true))
-     (before :facts (io/delete-file "sqlite.db" true))]
+    [;(after :checks (io/delete-file "sqlite.db" true))
+     (before :facts (io/delete-file "sqlite.db" true))
+     ]
+
     (facts "About `create-table"
            (do (create-table "table_name")
                (first (jdbc/query db-spec ["select count(1) from table_name;"])) => #(-> % vals first zero?))
@@ -65,33 +67,47 @@
            (do (create-table "table_name")
                (table-exists? "table_name") => truthy)
            )
+
+
+    (facts "About `basic-handler"
+           ((basic-handler error-url) error)  => (-> error (assoc :url error-url :msg "error") (dissoc :error))
+           ((basic-handler formatted-doc-url) formatted-doc) => (contains {:url formatted-doc-url 
+                                                                           :msg :formatted 
+                                                                           :type "class java.lang.Long"})
+           ((basic-handler true-html-url) {:body true-html}) => {:body "html" :url true-html-url :msg :generic}
+           ((basic-handler true-html-content-url) {:body true-content-html}) => (contains {:body (contains "content1content2") 
+                                                                                           :url true-html-content-url 
+                                                                                           :msg :generic})
+           ((basic-handler only-txt-url) only-txt) => {:body "only text" :url only-txt-url :msg :unstructured}
+           )
+
+    (facts "About `launch-async"
+           (let [table-name "table_name"
+                 handler (fn [_] 
+                           (fn [{body :body}]
+                             (insert! table-name {:data (json/generate-string {:body body})})))
+                 *launch-async (partial launch-async handler)]
+             (with-fake-http [only-txt-url only-txt]
+               (create-table table-name)
+               @(*launch-async only-txt-url)
+               (jdbc/query db-spec ["select * from table_name;"]) => #(-> % count pos?)
+               (jdbc/query db-spec ["select * from table_name;"]) => #(-> % first :data (json/parse-string true)
+                                                                          :body count pos?)
+               )))
+
+    (facts "About `doasync"
+                  (let [n 3
+                        table-name "table_name"
+                        handler (fn [_] 
+                                  (fn [{body :body}]
+                                    (insert! table-name {:data (json/generate-string {:body body})})))
+                        *launch-async (partial launch-async handler)]
+                    (with-fake-http [only-txt-url only-txt]
+                      (create-table table-name)
+                      (doasync *launch-async (repeat n only-txt-url))
+                      (jdbc/query db-spec ["select * from table_name;"]) => #(-> % count (= 3))
+                      (jdbc/query db-spec ["select * from table_name;"]) => #(-> % second :data (json/parse-string true)
+                                                                                 :body count pos?)
+                      )))
     )
-
-  (facts "About `basic-handler"
-         ((basic-handler error-url) error)  => (-> error (assoc :url error-url :msg "error") (dissoc :error))
-         ((basic-handler formatted-doc-url) formatted-doc) => (contains {:url formatted-doc-url 
-                                                                         :msg :formatted 
-                                                                         :type "class java.lang.Long"})
-         ((basic-handler true-html-url) {:body true-html}) => {:body "html" :url true-html-url :msg :generic}
-         ((basic-handler true-html-content-url) {:body true-content-html}) => (contains {:body (contains "content1content2") 
-                                                                                         :url true-html-content-url 
-                                                                                         :msg :generic})
-         ((basic-handler only-txt-url) only-txt) => {:body "only text" :url only-txt-url :msg :unstructured}
-         )
-
-  (facts "About `launch-async"
-         (let [table-name "table_name"
-               handler (fn [_] 
-                         (fn [{body :body}]
-                           (insert! table-name {:data (json/generate-string {:body body})})))
-               *launch-async (partial launch-async handler)]
-           (with-fake-http [only-txt-url only-txt]
-             (create-table table-name)
-             @(*launch-async only-txt-url)
-             (jdbc/query db-spec ["select * from table_name;"]) => #(-> % count pos?)
-             (jdbc/query db-spec ["select * from table_name;"]) => #(-> % first :data (json/parse-string true)
-                                                                        :body count pos?)
-             )))
-
   )
-

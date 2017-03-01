@@ -91,3 +91,7 @@
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
               handler)))
 
+(defn doasync [launcher urls]
+  (->> urls 
+       (map launcher) doall 
+       (map deref) doall))
