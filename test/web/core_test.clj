@@ -81,14 +81,17 @@
 
   (facts "About `launch-async"
          (let [table-name "table_name"
-               handler (fn [{body :body}]
-                         (insert! table-name {:data (json/generate-string {:body body})}))
-               *launch-async (partial launch-async handler)
-               channel (chan 1)]
+               handler (fn [_] 
+                         (fn [{body :body}]
+                           (insert! table-name {:data (json/generate-string {:body body})})))
+               *launch-async (partial launch-async handler)]
            (with-fake-http [only-txt-url only-txt]
              (create-table table-name)
-             (>!! channel (*launch-async only-txt-url))
-             (<!! channel)
-             (jdbc/query db-spec ["select count(1) from table_name;"]) => #(-> % first vals first pos?))))
+             @(*launch-async only-txt-url)
+             (jdbc/query db-spec ["select * from table_name;"]) => #(-> % count pos?)
+             (jdbc/query db-spec ["select * from table_name;"]) => #(-> % first :data (json/parse-string true)
+                                                                        :body count pos?)
+             )))
 
   )
+

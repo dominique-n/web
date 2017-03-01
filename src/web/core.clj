@@ -75,7 +75,7 @@
   ([callback url]
   (fn [{:keys  [status headers body error]}]
     (let  [data (cond
-                    error {:url url :status status :msg error}
+                    error {:url url :status status :msg (str error)}
                     (not (string? body)) {:msg :formatted :url url :type (str (type body))}
                     (true-html? body) {:msg :generic :body (extract-html-text body)
                                        :url url}
@@ -84,8 +84,10 @@
 
 
 (defn launch-async [handler url]
+(let [handler (handler url)]
   (http/get url 
               {:as :text
                :timeout 5000
                :user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:10.0) Gecko/20100101 Firefox/10.0"}
-              (handler url)))
+              handler)))
+
