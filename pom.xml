@@ -7,7 +7,7 @@
   <name>web</name>
   <description>Cool new project to do things and stuff</description>
   <scm>
-    <tag>9ff4a47b20a81d0b8db51fd8bdcb4866a38f4894
+    <tag>ad5c0140d3b5261255de7fc331daf2baf75ba3ac
 </tag>
     <url/>
   </scm>
@@ -100,9 +100,19 @@
       <version>1.7.22</version>
     </dependency>
     <dependency>
+      <groupId>com.jolbox</groupId>
+      <artifactId>bonecp</artifactId>
+      <version>0.8.0.RELEASE</version>
+    </dependency>
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.async</artifactId>
       <version>0.2.395</version>
+    </dependency>
+    <dependency>
+      <groupId>format-data</groupId>
+      <artifactId>format-data</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>midje</groupId>
