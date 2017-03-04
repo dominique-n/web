@@ -48,17 +48,15 @@
 (def ^:dynamic *pooled-db* (pool-db (make-db-spec)))
 
 (defn create-table 
-  ([table-name] (create-table 
-                  table-name 
-                  [[:primary_id :integer "PRIMARY KEY AUTOINCREMENT"]
-                   [:timestamp :datetime "DEFAULT CURRENT_TIMESTAMP"]
-                   [:data :text]]))
+  ([table-name] (create-table table-name [[:data :text]]))
   ([table-name columns]
   (jdbc/db-do-commands 
     *pooled-db* 
     (jdbc/create-table-ddl 
       table-name
-      columns))))
+      (apply conj [[:primary_id :integer "PRIMARY KEY AUTOINCREMENT"]
+                   [:timestamp :datetime "DEFAULT CURRENT_TIMESTAMP"]]
+                   columns)))))
 
 (def insert! (partial jdbc/insert! *pooled-db*))
 (def execute! (partial jdbc/execute! *pooled-db*))

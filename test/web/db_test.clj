@@ -26,10 +26,10 @@
          )
 
   (facts "About `insert! `query `execute!"
-         (create-table table-name [[:data :text]])
+         (create-table table-name )
          (insert! table-name {:data "inserted"})
          (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 1))
-         (execute! [(str "insert into " table-name "  values ('inserted')")])
+         (execute! [(str "insert into " table-name " ('data') values ('inserted')")])
          (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 2))
          )
 

@@ -22,3 +22,13 @@
 (re-seq #"<html.+<body.+<p" "<html><body><p>yo")
 (re-seq #"<html.+<body.+<p" "<html><body>
 <p>")
+(assoc [] [1 2])
+(conj [] [1 2])
+(concat [] [1 2])
+(merge [3] [1 2])
+(concat [3] [1 2])
+(doc concat)
+(conj [] 1)
+(conj [] 1 2)
+(apply conj [] [3 4])
+(apply conj [1 2] [3 4])
