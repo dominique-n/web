@@ -1,6 +1,6 @@
-(ns web.core-test
+(ns web.http-test
   (:require [midje.sweet :refer :all]
-            [web.core :refer :all]
+            [web.http :refer :all]
             [test-with-files.core :refer  [with-files public-dir]]
             [clojure.java.io :as io]
             [clojure-csv.core :as csv]
