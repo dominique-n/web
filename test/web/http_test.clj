@@ -1,6 +1,7 @@
 (ns web.http-test
   (:require [midje.sweet :refer :all]
             [web.http :refer :all]
+            [web.db :as db]
             [test-with-files.core :refer  [with-files public-dir]]
             [clojure.java.io :as io]
             [clojure-csv.core :as csv]
@@ -44,24 +45,24 @@
          )
 
   (against-background 
-    [(before :facts (execute! ["drop table if exists test_table;"]))
-     (after :facts (execute! ["drop table if exists test_table;"]))
+    [(before :facts (db/execute! ["drop table if exists test_table;"]))
+     (after :facts (db/execute! ["drop table if exists test_table;"]))
      ]
 
-    (facts "About `create-table"
-           (create-table table-name)
-           (first (jdbc/query db-spec [(str "select count(1) from " table-name ";")])) => #(-> % vals first zero?)
+    (facts "About `db/create-table"
+           (db/create-table table-name)
+           (first (db/query [(str "select count(1) from " table-name ";")])) => #(-> % vals first zero?)
            )
 
-    (facts "About `insert!"
-           (create-table table-name)
-           (insert! table-name {:data "inserted"})
-           (first (query [(str "select count(1) from " table-name ";")])) => #(-> % vals first pos?))
+    (facts "About `db/insert!"
+           (db/create-table table-name)
+           (db/insert! table-name {:data "inserted"})
+           (first (db/query [(str "select count(1) from " table-name ";")])) => #(-> % vals first pos?))
 
-    (facts "About `table-exists?"
-           (table-exists? table-name) => falsey
-           (do (create-table table-name)
-               (table-exists? table-name) => truthy)
+    (facts "About `db/table-exists?"
+           (db/table-exists? table-name) => falsey
+           (do (db/create-table table-name)
+               (db/table-exists? table-name) => truthy)
            )
 
 
@@ -80,13 +81,13 @@
     (facts "About `launch-async"
                   (let [handler (fn [_] 
                                   (fn [{body :body}]
-                                    (insert! table-name {:data (json/generate-string {:body body})})))
+                                    (db/insert! table-name {:data (json/generate-string {:body body})})))
                         *launch-async (partial launch-async handler)]
                     (with-fake-http [only-txt-url only-txt]
-                      (create-table table-name)
+                      (db/create-table table-name)
                       @(*launch-async only-txt-url)
-                      (jdbc/query db-spec [(str "select * from " table-name ";")]) => #(-> % count pos?)
-                      (jdbc/query db-spec [(str "select * from " table-name ";")]) => #(-> % first :data (json/parse-string true)
+                      (db/query [(str "select * from " table-name ";")]) => #(-> % count pos?)
+                      (db/query [(str "select * from " table-name ";")]) => #(-> % first :data (json/parse-string true)
                                                                                  :body count pos?)
                       )))
 
@@ -94,13 +95,13 @@
                   (let [n 3
                         handler (fn [_] 
                                   (fn [{body :body}]
-                                    (insert! table-name {:data (json/generate-string {:body body})})))
+                                    (db/insert! table-name {:data (json/generate-string {:body body})})))
                         *launch-async (partial launch-async handler)]
                     (with-fake-http [only-txt-url only-txt]
-                      (create-table table-name)
+                      (db/create-table table-name)
                       (doasync *launch-async (repeat n only-txt-url))
-                      (jdbc/query db-spec [(str "select * from " table-name ";")]) => #(-> % count (= 3))
-                      (jdbc/query db-spec [(str "select * from " table-name ";")]) => #(-> % second :data (json/parse-string true)
+                      (db/query [(str "select * from " table-name ";")]) => #(-> % count (= 3))
+                      (db/query [(str "select * from " table-name ";")]) => #(-> % second :data (json/parse-string true)
                                                                                  :body count pos?)
                       )))
     )
