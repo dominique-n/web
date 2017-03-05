@@ -15,8 +15,8 @@
 
 
 (against-background 
-  [(before :facts (execute! ["drop table if exists test_table;"]))
-   (after :facts (execute! ["drop table if exists test_table;"]))
+  [(before :facts (jdbc/execute! *pooled-db* ["drop table if exists test_table;"]))
+   (after :facts (jdbc/execute! *pooled-db* ["drop table if exists test_table;"]))
    (before :contents (def table-name "test_table"))
    ]
 
