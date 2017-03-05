@@ -7,7 +7,7 @@
   <name>web</name>
   <description>Cool new project to do things and stuff</description>
   <scm>
-    <tag>a68d057771f5f48ef3c8a3655c8ffb9b94702c94
+    <tag>115c74de52922a968a88db9fa459d3782ec8f587
 </tag>
     <url/>
   </scm>
@@ -110,9 +110,9 @@
       <version>0.2.395</version>
     </dependency>
     <dependency>
-      <groupId>format-data</groupId>
-      <artifactId>format-data</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <groupId>twitter-api</groupId>
+      <artifactId>twitter-api</artifactId>
+      <version>1.8.0</version>
     </dependency>
     <dependency>
       <groupId>midje</groupId>

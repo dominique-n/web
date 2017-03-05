@@ -33,12 +33,12 @@
                      :body {:statuses []}}]
 
   (facts "About `iterate-twitter"
-         (first (iterate-twitter search-tweets :id :msg :oauth-creds "my creds" :q "#analytics")) => 1
-         (take 5 (iterate-twitter search-tweets :id :msg :oauth-creds "my creds" :q "#analytics")) => (five-of 1)
+         (first (iterate-twitter search-tweets :id "my creds" :q "#analytics")) => 1
+         (take 5 (iterate-twitter search-tweets :id "my creds" :q "#analytics")) => (five-of 1)
          (against-background
            (search-tweets & anything) => response-ok)
 
-         (iterate-twitter search-tweets :id :msg :oauth-creds "my creds" :q "#analytics") => empty?
+         (iterate-twitter search-tweets :id "my creds" :q "#analytics") => empty?
          (provided
            (search-tweets & anything) => response-null)
          )
