@@ -22,7 +22,7 @@
        (flatten1 [[1 2] [3]]) => [1 2 3])
 
 (facts "About `extract-max-id"
-       (extract-max-id {:next_results "?max_id=123&q="}) => "123"
+       (extract-max-id {:search_metadata {:next_results "?max_id=123&q="}}) => "123"
        (extract-max-id {}) => nil?
        )
 
@@ -31,15 +31,15 @@
                           :search_metadata {:next_results "?max_id=123&q="}}}
       response-null {:status {:code 200}
                      :body {:statuses []}}]
-  (future-facts "ABout `iterate-twitter"
-              (iterate-twitter search-twitters :id :msg :oauth-creds 
-                               "my creds" :q "#analytics") => (two-of 1)
-              (provided
-                (search-twitters & anything) => response-ok)
-              (iterate-twitter search-twitters :id :msg :oauth-creds
-                               "my creds" :q "#analytics") => empty?
-              (provided
-                (search-twitters & anything) => response-null)
-              )
-  
+
+  (facts "About `iterate-twitter"
+         (take 2 (iterate-twitter search-tweets :id :msg :oauth-creds "my creds" :q "#analytics")) => (two-of 1)
+         (provided
+           (search-tweets & anything) => response-ok)
+
+         (iterate-twitter search-tweets :id :msg :oauth-creds "my creds" :q "#analytics") => empty?
+         (provided
+           (search-tweets & anything) => response-null)
+         )
+
   )
