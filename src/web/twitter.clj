@@ -28,7 +28,7 @@
         twitter-get (fn [& *params] 
                       ;;expect crucially :max_id to iterate over responses
                       (let [*params (merge params (apply hash-map *params))
-                            {:keys [status body]} (apply request-fn :params *params)]
+                            {:keys [status body]} (request-fn :params *params)]
                         {:max_id (extract-max-id body) 
                          :statuses (seq (:statuses body))}))
         response0 (twitter-get)]

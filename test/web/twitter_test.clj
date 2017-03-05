@@ -44,3 +44,16 @@
          )
 
   )
+
+;;thoses tests need credentials
+(def my-creds  (make-oauth-creds "app-consumer-key"
+                                 "app-consumer-secret"
+                                 "user-access-token"
+                                 "user-access-token-secret"))
+
+
+
+(future-facts :online
+       (facts "iterate-twitter should return different different tweets"
+              (take 5 (iterate-twitter search-tweets identity mycreds :q "#analytics" :count 3))
+              => #(= 5 (count (set %)))))
