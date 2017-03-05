@@ -22,7 +22,7 @@
 
 (defn iterate-twitter
   "request-fn is a request function compatible with `twitter-api"
-  [request-fn process-fn credentials & params]
+  [request-fn credentials & params]
   (let [request-fn (partial request-fn :oauth-creds credentials)
         params (assoc (apply hash-map params) :result_type "popular" :include_entities "true" :count 100)
         twitter-get (fn [& *params] 
@@ -37,5 +37,4 @@
            (iterate 
              (fn [{max_id :max_id}]
                (if max_id (twitter-get :max_id max_id))))
-           (take-while :statuses) (map :statuses) flatten1
-           (map process-fn)))))
+           (take-while :statuses) (map :statuses) flatten1))))

@@ -33,12 +33,12 @@
                      :body {:statuses []}}]
 
   (facts "About `iterate-twitter"
-         (first (iterate-twitter search-tweets :id "my creds" :q "#analytics")) => 1
-         (take 5 (iterate-twitter search-tweets :id "my creds" :q "#analytics")) => (five-of 1)
+         (take 5 (iterate-twitter search-tweets "my creds" :q "#analytics"))
+         => (five-of (-> response-ok :body :statuses first))
          (against-background
            (search-tweets & anything) => response-ok)
 
-         (iterate-twitter search-tweets :id "my creds" :q "#analytics") => empty?
+         (iterate-twitter search-tweets "my creds" :q "#analytics") => empty?
          (provided
            (search-tweets & anything) => response-null)
          )
@@ -55,5 +55,5 @@
 
 (future-facts :online
        (facts "iterate-twitter should return different different tweets"
-              (take 5 (iterate-twitter search-tweets identity mycreds :q "#analytics" :count 3))
+              (take 5 (iterate-twitter search-tweets mycreds :q "#analytics" :count 3))
               => #(= 5 (count (set %)))))
