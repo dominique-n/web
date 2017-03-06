@@ -7,9 +7,11 @@
   <name>web</name>
   <description>Cool new project to do things and stuff</description>
   <scm>
-    <tag>25f56ee576bcf6912599386a50416614bc25c561
+    <connection>scm:git:git://github.com/dominique-n/web.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/dominique-n/web.git</developerConnection>
+    <tag>a7c989e7d1fa9f927673e1d3b109b18c989abec1
 </tag>
-    <url/>
+    <url>https://github.com/dominique-n/web</url>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
