@@ -39,7 +39,8 @@
   "request-fn is a request function compatible with `twitter-api"
   [request-fn credentials & params]
   (let [request-fn (partial request-fn :oauth-creds credentials)
-        params (assoc (apply hash-map params) :result_type "popular" :include_entities "true" :count 100)
+        params (merge {:result_type "popular" :include_entities "true" :count 100} 
+                      (apply hash-map params))
         twitter-get (fn [& *params] 
                       ;;expect crucially :max_id to iterate over responses
                       (let [*params (merge params (apply hash-map *params))
@@ -56,19 +57,3 @@
                (if max_id (twitter-get :max_id max_id))))
            (take-while :statuses) (map :statuses) flatten1))))
 
-
-(defn -main []
-  (def response (search-tweets :oauth-creds credentials :params {:q "#marketing" :include_entities true}))
-  (def headers (:headers response))
-  (-> response keys)
-  (-> response :headers keys)
-  (let [{:keys [x-rate-limit-remaining x-rate-limit-reset]} (-> response :headers)]
-    (println x-rate-limit-reset x-rate-limit-remaining)
-    (type x-rate-limit-reset))
-
-
-  (select-keys (-> response :headers) [:x-rate-limit-reset :x-rate-limit-remaining])
-  (-  (Integer. (-> response :headers :x-rate-limit-reset)) (quot  (System/currentTimeMillis) 1000))
-  (within-quota? headers)
-  (quota-sleep headers)
-  )

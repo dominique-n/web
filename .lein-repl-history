@@ -65,3 +65,5 @@
 (max 0 1)
 (Thread/sleep -1)
 (Thread/sleep 0)
+(merge {:a 1} {:a 2})
+(merge {:a 2} {:a 1})
