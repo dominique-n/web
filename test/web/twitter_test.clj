@@ -70,3 +70,13 @@
        (facts "iterate-twitter should return different different tweets"
               (take 5 (iterate-twitter search-tweets credentials :q "#analytics" :count 3))
               => #(= 5 (count (set %)))))
+
+
+(let [response (json/parse-string (slurp "dev-resources/search_tweet_response.json") true)
+      tweets (-> response :body :statuses)
+      contains-keys (fn [m] (every? #(contains? m %) fields))]
+
+  (facts "About `extract-tweet-fields"
+       (keys (extract-tweet-fields (first tweets))) => (contains fields)
+       )
+  )

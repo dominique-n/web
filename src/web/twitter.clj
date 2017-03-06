@@ -57,3 +57,10 @@
                (if max_id (twitter-get :max_id max_id))))
            (take-while :statuses) (map :statuses) flatten1))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;data extraction helpers
+
+(def fields [:created_at :favorite_count :retweeted :id :entities :user :retweet_count])
+(defn extract-tweet-fields [tweet]
+  (select-keys tweet fields))
