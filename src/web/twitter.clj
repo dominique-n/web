@@ -31,10 +31,9 @@
   (quot (System/currentTimeMillis) 1000))
 
 (defn quota-sleep [headers]
-  (let [x-rate-limit-reset (:x-rate-limit-reset headers)
-        delay (- (Integer. x-rate-limit-reset) (curr-utime))] 
-    (println delay)
-    (Thread/sleep delay)))
+  (let [x-rate-limit-reset (:x-rate-limit-reset headers)] 
+    (max 0
+      (- (Integer. x-rate-limit-reset) (curr-utime)))))
 
 (defn iterate-twitter
   "request-fn is a request function compatible with `twitter-api"
@@ -53,18 +52,14 @@
       (->> response0
            (iterate 
              (fn [{:keys [max_id headers]}]
-               (if-not (within-quota? headers) (quota-sleep headers))
+               (if-not (within-quota? headers) (Thread/sleep (quota-sleep headers)))
                (if max_id (twitter-get :max_id max_id))))
            (take-while :statuses) (map :statuses) flatten1))))
-
-(def credentials (make-oauth-creds "KgKKVTkrs7yG9tUrAQ4Yjw"
-                                   "lqhPEfxK4bENdL0wz7h5GE0OR3EVlRUdOKl8zjvhI"
-                                   "470176907-ZlU0Hv3u5B43fs1CRMEYYrBHcjMLDLMFhm3RxGj1"
-                                   "dgW3znO1U9B6ak8eRHnHfgYTpL0xIddpNyBmuZJR3gY"))
 
 
 (defn -main []
   (def response (search-tweets :oauth-creds credentials :params {:q "#marketing" :include_entities true}))
+  (def headers (:headers response))
   (-> response keys)
   (-> response :headers keys)
   (let [{:keys [x-rate-limit-remaining x-rate-limit-reset]} (-> response :headers)]
@@ -74,4 +69,6 @@
 
   (select-keys (-> response :headers) [:x-rate-limit-reset :x-rate-limit-remaining])
   (-  (Integer. (-> response :headers :x-rate-limit-reset)) (quot  (System/currentTimeMillis) 1000))
+  (within-quota? headers)
+  (quota-sleep headers)
   )

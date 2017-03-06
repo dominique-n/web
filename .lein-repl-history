@@ -60,3 +60,8 @@
 (apply not= [1 1 1])
 (not= 1 1 1 )
 (set [1 2 2])
+(abs -1)
+(Math/abs -1)
+(max 0 1)
+(Thread/sleep -1)
+(Thread/sleep 0)

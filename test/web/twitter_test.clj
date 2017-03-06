@@ -31,6 +31,12 @@
        (within-quota? {:x-rate-limit-remaining "1"}) => truthy
        )
 
+(facts "About `quota-sleep"
+       (quota-sleep {:x-rate-limit-reset 10}) => 10
+       (provided
+         (curr-utime) => 0)
+       )
+
 (let [headers {:x-rate-limit-reset 1 :x-rate-limit-remaining 1}
       response-ok {:status {:code 200}
                    :body {:statuses [{:id 1}]
@@ -54,14 +60,13 @@
   )
 
 ;;thoses tests need credentials
-(def my-creds  (make-oauth-creds "app-consumer-key"
-                                 "app-consumer-secret"
-                                 "user-access-token"
-                                 "user-access-token-secret"))
-
+;(def credentials (make-oauth-creds "app-consumer-key"
+                                 ;"app-consumer-secret"
+                                 ;"user-access-token"
+                                 ;"user-access-token-secret"))
 
 
 (future-facts :online
        (facts "iterate-twitter should return different different tweets"
-              (take 5 (iterate-twitter search-tweets mycreds :q "#analytics" :count 3))
+              (take 5 (iterate-twitter search-tweets credentials :q "#analytics" :count 3))
               => #(= 5 (count (set %)))))
