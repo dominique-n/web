@@ -26,11 +26,19 @@
        (extract-max-id {}) => nil?
        )
 
-(let [response-ok {:status {:code 200}
+(facts "About `within-quota?"
+       (within-quota? {:x-rate-limit-remaining "0"}) => falsey
+       (within-quota? {:x-rate-limit-remaining "1"}) => truthy
+       )
+
+(let [headers {:x-rate-limit-reset 1 :x-rate-limit-remaining 1}
+      response-ok {:status {:code 200}
                    :body {:statuses [{:id 1}]
-                          :search_metadata {:next_results "?max_id=123&q="}}}
+                          :search_metadata {:next_results "?max_id=123&q="}}
+                   :headers headers}
       response-null {:status {:code 200}
-                     :body {:statuses []}}]
+                     :body {:statuses []}
+                     :headers headers}]
 
   (facts "About `iterate-twitter"
          (take 5 (iterate-twitter search-tweets "my creds" :q "#analytics"))
