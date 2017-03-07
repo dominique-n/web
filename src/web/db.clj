@@ -58,10 +58,32 @@
                    [:timestamp :datetime "DEFAULT CURRENT_TIMESTAMP"]]
                    columns)))))
 
-(def insert! (partial jdbc/insert! *pooled-db*))
+(defn insert! 
+  ([table-name row] (jdbc/insert! *pooled-db* table-name row))
+  ([table-name row & rows] 
+   (apply (partial jdbc/insert! *pooled-db* table-name) (conj row rows))))
+
 (def execute! (partial jdbc/execute! *pooled-db*))
 (def query (partial jdbc/query *pooled-db*))
 
 (defn table-exists? [table-name]
-  (try (do (jdbc/query *pooled-db* [(str "select * from " table-name " limit 1;")]) true)
+  (try (do (jdbc/query *pooled-db* [(str "select * from " (name table-name) " limit 1;")]) true)
                  (catch org.sqlite.SQLiteException e false)))
+
+
+;(def db-spec {:classname   "org.sqlite.JDBC"
+              ;:subprotocol  "sqlite"
+              ;:subname "sqlite.db" 
+              ;:init-pool-size 1
+              ;:max-pool-size 1
+              ;:partitions 1})
+
+;(jdbc/db-do-commands 
+    ;*pooled-db* 
+    ;(jdbc/create-table-ddl 
+      ;:play
+      ;[[:primary_id :integer "PRIMARY KEY AUTOINCREMENT"]
+       ;[:data :text]]))
+
+;(jdbc/insert! *pooled-db* :play {:data "hello"}{:data "hello"})
+;(jdbc/insert! *pooled-db* :play {:data "hello"}{:data "hello"}{:data "hello"})
