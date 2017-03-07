@@ -39,7 +39,7 @@
   "request-fn is a request function compatible with `twitter-api"
   [request-fn credentials & params]
   (let [request-fn (partial request-fn :oauth-creds credentials)
-        params (merge {:result_type "popular" :include_entities "true" :count 100} 
+        params (merge {:include_entities "true" :count 100} 
                       (apply hash-map params))
         twitter-get (fn [& *params] 
                       ;;expect crucially :max_id to iterate over responses

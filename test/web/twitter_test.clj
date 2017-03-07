@@ -1,5 +1,6 @@
 (ns web.twitter-test
   (:require [midje.sweet :refer :all]
+            [web.credentials :as credentials]
             [web.twitter :refer :all]
             [web.db :as db]
             [test-with-files.core :refer  [with-files public-dir]]
@@ -16,6 +17,7 @@
         [twitter.callbacks.handlers]
         [twitter.api.restful])
   (:import [twitter.callbacks.protocols SyncSingleCallback]))
+
 
 
 (facts "About `flatten1"
@@ -59,17 +61,20 @@
 
   )
 
-;;thoses tests need credentials
-;(def credentials (make-oauth-creds "app-consumer-key"
-                                 ;"app-consumer-secret"
-                                 ;"user-access-token"
-                                 ;"user-access-token-secret"))
-
-
 (future-facts :online
-       (facts "iterate-twitter should return different different tweets"
-              (take 5 (iterate-twitter search-tweets credentials :q "#analytics" :count 3))
-              => #(= 5 (count (set %)))))
+              ;;load api keys from global env
+              (let [twitter-keys (:twitter credentials/portfolio)
+                    credentials (make-oauth-creds (:consumer-key twitter-keys)
+                                                  (:consumer-key-secret twitter-keys)
+                                                  (:access-token twitter-keys)
+                                                  (:access-token-secret twitter-keys))]
+
+                (facts "iterate-twitter should return different different tweets"
+                       (take 5 (iterate-twitter search-tweets credentials :q "#analytics" :count 2))
+                       => (n-of anything 5)
+                       )
+                )
+              )
 
 
 (let [response (json/parse-string (slurp "dev-resources/search_tweet_response.json") true)

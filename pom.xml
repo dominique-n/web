@@ -9,7 +9,7 @@
   <scm>
     <connection>scm:git:git://github.com/dominique-n/web.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/dominique-n/web.git</developerConnection>
-    <tag>a7c989e7d1fa9f927673e1d3b109b18c989abec1
+    <tag>e47893ac16f449091ea96077402a68ce557027f4
 </tag>
     <url>https://github.com/dominique-n/web</url>
   </scm>
