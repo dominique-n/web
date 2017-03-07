@@ -17,27 +17,25 @@
 (against-background 
   [(before :facts (jdbc/execute! *pooled-db* ["drop table if exists test_table;"]))
    (after :facts (jdbc/execute! *pooled-db* ["drop table if exists test_table;"]))
-   (before :contents (def table-name :test_table))
+   (before :contents (def table-name "test_table"))
    ]
 
   (facts "About `create-table"
          (create-table table-name)
-         (first (jdbc/query *pooled-db* [(str "select count(1) from " (name table-name) ";")])) => #(-> % vals first zero?)
+         (first (jdbc/query *pooled-db* [(str "select count(1) from " table-name ";")])) => #(-> % vals first zero?)
          )
 
-  (facts "About `insert! `query `execute!"
+  (facts "About `insert! `insert-multi! `query `execute!"
          (create-table table-name)
          (insert! table-name {:data "inserted"})
-         (first (query [(str "select count(1) from " (name table-name))])) => #(-> % vals first (= 1))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 1))
 
-         ;(jdbc/insert! *pooled-db* table-name {:data "inserted"} {:data "inserted"})
-         ;(first (query [(str "select count(1) from " (name table-name))])) => #(-> % vals first (= 3))
+         (insert-multi! table-name (repeat 10 {:data "inserted"}))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 11))
 
-         ;(insert! table-name (repeat 99 {:data "inserted"}))
-         ;(first (query [(str "select count(1) from " (name table-name))])) => #(-> % vals first (= 100))
 
-         ;(execute! [(str "insert into " table-name " ('data') values ('inserted')")])
-         ;(first (query [(str "select count(1) from " (name table-name))])) => #(-> % vals first (= 2))
+         (execute! [(str "insert into " table-name " ('data') values ('inserted')")])
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 12))
          )
 
   (facts "About `table-exists?"
