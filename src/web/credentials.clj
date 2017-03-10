@@ -10,7 +10,9 @@
              :consumer-key-secret (get env "TWITTER_CONSUMER_KEY_SECRET")
              :access-token (get env "TWITTER_ACCESS_TOKEN")
              :access-token-secret (get env "TWITTER_ACCESS_TOKEN_SECRET")}
-   :google {:api-key (get env "GOOGLE_API_KEY")}
+   :google {:api-key (get env "GOOGLE_API_KEY")
+            :client-id (get env "GOOGLE_CLIENT_ID")
+            :client-secret (get env "GOOGLE_CLIENT_SECRET")}
    :goodreads {:key (get env "GOODREADS-KEY")
                :secret (get env "GOODREADS-SECRET")}
    :facebook {}

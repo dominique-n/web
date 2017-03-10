@@ -49,12 +49,12 @@
                      :headers headers}]
 
   (facts "About `iterate-twitter"
-         (take 5 (iterate-twitter search-tweets "my creds" :q "#analytics"))
+         (take 5 (iterate-twitter search-tweets :statuses "my creds" :q "#analytics"))
          => (five-of (-> response-ok :body :statuses first))
          (against-background
            (search-tweets & anything) => response-ok)
 
-         (iterate-twitter search-tweets "my creds" :q "#analytics") => empty?
+         (iterate-twitter search-tweets :statuses "my creds" :q "#analytics") => empty?
          (provided
            (search-tweets & anything) => response-null)
          )
