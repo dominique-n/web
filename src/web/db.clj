@@ -61,7 +61,10 @@
 (def insert! (partial jdbc/insert! *pooled-db*))
 (def execute! (partial jdbc/execute! *pooled-db*))
 (def query (partial jdbc/query *pooled-db*))
-(def insert-multi! (partial jdbc/insert-multi! *pooled-db*))
+(defn insert-multi! 
+  ([table-name rows] (jdbc/insert-multi! *pooled-db* table-name rows))
+  ([n table-name rows] (doseq [*rows (partition-all n rows)]
+                         (jdbc/insert-multi! *pooled-db* table-name *rows))))
 
 (defn table-exists? [table-name]
   (try (do (jdbc/query *pooled-db* [(str "select * from " (name table-name) " limit 1;")]) true)

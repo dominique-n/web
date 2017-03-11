@@ -33,9 +33,11 @@
          (insert-multi! table-name (repeat 10 {:data "inserted"}))
          (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 11))
 
+         (insert-multi! 3 table-name (repeat 10 {:data "inserted"}))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 21))
 
          (execute! [(str "insert into " table-name " ('data') values ('inserted')")])
-         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 12))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 22))
          )
 
   (facts "About `table-exists?"
