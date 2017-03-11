@@ -35,16 +35,15 @@
     (max 0
       (- (Integer. x-rate-limit-reset) (curr-utime)))))
 
-(defn iterate-twitter
-  "request-fn is a request function compatible with `twitter-api"
-  [request-fn extract-fn credentials & params]
-  (let [request-fn (partial request-fn :oauth-creds credentials)
+(defn iterate-search
+  [credentials & params]
+  (let [request-fn (partial twitter.api.restful/search-tweets :oauth-creds credentials)
         twitter-get (fn [& *params] 
                       ;;expect crucially :max_id to iterate over responses
                       (let [*params (merge params (apply hash-map *params))
                             {:keys [status body headers]} (request-fn :params *params)]
                         {:max_id (extract-max-id body) 
-                         :data (seq (extract-fn body)) ;;assume twitter resp. contained is seq 
+                         :data (seq (:statuses body)) ;;assume twitter resp. contained is seq 
                          :headers headers}))
         response0 (twitter-get)]
     (if (:data response0)

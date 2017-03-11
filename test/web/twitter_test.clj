@@ -48,15 +48,15 @@
                      :body {:statuses []}
                      :headers headers}]
 
-  (facts "About `iterate-twitter"
-         (take 5 (iterate-twitter search-tweets :statuses "my creds" :q "#analytics"))
+  (facts "About `iterate-search"
+         (take 5 (iterate-search "my creds" :q "#analytics"))
          => (five-of (-> response-ok :body :statuses first))
          (against-background
-           (search-tweets & anything) => response-ok)
+           (twitter.api.restful/search-tweets & anything) => response-ok)
 
-         (iterate-twitter search-tweets :statuses "my creds" :q "#analytics") => empty?
+         (iterate-search "my creds" :q "#analytics") => empty?
          (provided
-           (search-tweets & anything) => response-null)
+           (twitter.api.restful/search-tweets & anything) => response-null)
          )
 
   )
@@ -69,8 +69,8 @@
                                                   (:access-token twitter-keys)
                                                   (:access-token-secret twitter-keys))]
 
-                (facts "iterate-twitter should return different different tweets"
-                       (take 5 (iterate-twitter search-tweets credentials :q "#analytics" :count 2))
+                (facts "iterate-search should return different different tweets"
+                       (take 5 (iterate-search credentials :q "#analytics" :count 2))
                        => (n-of anything 5)
                        )
                 )
