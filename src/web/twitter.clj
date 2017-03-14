@@ -83,28 +83,31 @@
   preprocess-fn a function to apply to the terms sequence before extraction"
   ([n colls] (extract-ngrams identity n colls))
   ([preprocess-fn n colls]
-   (combo/combinations (->> colls preprocess-fn sort) n)))
+   (combo/combinations (-> colls preprocess-fn sort) n)))
 
 (defn restrict-range 
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
   occurences a  map of terms to their occurences
   (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
-  when no bound given filater occs.range [max/2-max/4, max/2+max/4] where max = max(vals(occurrences))"
+  when no bound given filter occs.range on log occurences scale as:
+  [pivot (Math/log (->> occurrences vals (apply max)))
+  l-val (Math/exp (/ pivot 2))
+  r-val (Math/exp (+ (/ pivot 2) (/ pivot 4)))
+  " 
   ([left-bound right-bound occurrences]
-  (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
-  (let [n (count occurrences)
-        left-drops (* n left-bound)
-        right-drops (* n (- 1 right-bound))]
-    (->> occurrences
-         (sort-by val)
-         (drop left-drops)
-         (drop-last right-drops)
-         (into {}))))
+   (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
+   (let [n (count occurrences)
+         left-drops (* n left-bound)
+         right-drops (* n (- 1 right-bound))]
+     (->> occurrences
+          (sort-by val)
+          (drop left-drops)
+          (drop-last right-drops)
+          (into {}))))
   ([occurrences]
-   (let [pivot (quot (apply max (vals occurrences)) 2)
-         shift (quot pivot 2)
-         l-val (- pivot shift)
-         r-val (+ pivot shift)
+   (let [pivot (Math/log (->> occurrences vals (apply max)))
+         l-val (Math/exp (/ pivot 2))
+         r-val (Math/exp (+ (/ pivot 2) (/ pivot 4)))
          val-in? #(and (>= % l-val) (<= % r-val))]
      (into {}
            (filter #(-> % val val-in?) occurrences)))))

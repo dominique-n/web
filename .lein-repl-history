@@ -68,3 +68,4 @@
 (merge {:a 1} {:a 2})
 (merge {:a 2} {:a 1})
 (System/getenv)
+(Math/log 10)
