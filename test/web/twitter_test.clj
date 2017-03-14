@@ -102,11 +102,13 @@
                        )
                      )
 
-       (facts "About `restrict-occurrences-range"
-                     (let [occs {:a 2 :b 1 :c 3}
+       (facts "About `restrict-range"
+                     (let [occs1 {:a 2 :b 1 :c 3}
+                           occs2 {:a 1 :b 3 :c 6 :d 9}
                            l-b 1/3
                            r-b 2/3] 
-                       (restrict-occurrences-range l-b r-b occs) => {:a 2}
+                       (restrict-range l-b r-b occs1) => {:a 2}
+                       (restrict-range occs2) => {:b 3 :c 6}
                        )
                      )
        )

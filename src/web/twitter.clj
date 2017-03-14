@@ -85,17 +85,28 @@
   ([preprocess-fn n colls]
    (combo/combinations (->> colls preprocess-fn sort) n)))
 
-(defn restrict-occurrences-range 
+(defn restrict-range 
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
+  occurences a  map of terms to their occurences
   (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
-  occurences a  map of terms to their occurences"
-  [left-bound right-bound occurrences]
+  when no bound given filater occs.range [max/2-max/4, max/2+max/4] where max = max(vals(occurrences))"
+  ([left-bound right-bound occurrences]
   (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
   (let [n (count occurrences)
         left-drops (* n left-bound)
-        right-drops (* n (- 1 right-bound))
-        sorted-occs (sort-by val occurrences)]
-    (->> sorted-occs
+        right-drops (* n (- 1 right-bound))]
+    (->> occurrences
+         (sort-by val)
          (drop left-drops)
          (drop-last right-drops)
          (into {}))))
+  ([occurrences]
+   (let [pivot (quot (apply max (vals occurrences)) 2)
+         shift (quot pivot 2)
+         l-val (- pivot shift)
+         r-val (+ pivot shift)
+         val-in? #(and (>= % l-val) (<= % r-val))]
+     (into {}
+           (filter #(-> % val val-in?) occurrences)))))
+
+(every? identity [true false])
