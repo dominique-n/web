@@ -82,7 +82,10 @@
   colls a sequence of terms sequences
   preprocess-fn a function to apply to each terms sequence before extraction"
   ([n colls] (extract-ngrams identity n colls))
-  ([preprocess-fn n colls]))
+  ([preprocess-fn n colls]
+   (->> colls (map preprocess-fn) (map sort)
+        (map #(combo/combinations % n)) flatten1
+        (count-occurrences))))
 
 (defn restrict-occurrences-range 
   "return a filtered array-map of [term occurrences] as of *-bound ratios

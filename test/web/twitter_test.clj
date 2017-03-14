@@ -94,9 +94,9 @@
                      (count-occurrences #(clojure.string/replace % "o" "") ["yo" "bro" "yo"]) => {"y" 2 "br" 1}
                      )
 
-       (future-facts "About `extract-ngrams"
+       (facts "About `extract-ngrams"
                      (let [terms [["yo" "bro" "lol"] ["yo" "freak" "lol"]]
-                           f (fn [terms] (remove #(get #{"lol"} term) terms))] 
+                           f (fn [terms] (remove #(get #{"lol"} %) terms))] 
                        (extract-ngrams 2 terms) => {["bro" "yo"] 1 ["bro" "lol"] 1
                                                     ["freak" "yo"] 1 ["freak" "lol"] 1
                                                     ["lol" "yo"] 2}
