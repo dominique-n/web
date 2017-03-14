@@ -89,7 +89,7 @@
   )
 
 (facts "produce tweeters to follow suggestions"
-       (future-facts "About `count-occurrences"
+       (facts "About `count-occurrences"
                      (count-occurrences ["yo" "bro" "yo"]) => {"yo" 2 "bro" 1}
                      (count-occurrences #(clojure.string/replace % "o" "") ["yo" "bro" "yo"]) => {"y" 2 "br" 1}
                      )

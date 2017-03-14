@@ -72,7 +72,9 @@
   colls a sequence of terms
   preprocess-fn a function to apply to the terms before extraction"
   ([colls] (count-occurrences identity colls))
-  ([preprocess-fn colls]))
+  ([preprocess-fn colls]
+   (reduce #(assoc %1 %2 (inc (get %1 %2 0)))
+           {} (map preprocess-fn colls))))
 
 (defn extract-ngrams
   "return a hash-map of internally sorted n-grams to their occurrences
