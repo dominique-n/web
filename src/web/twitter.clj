@@ -75,7 +75,7 @@
   ([preprocess-fn colls]))
 
 (defn extract-ngrams
-  "return a hash-map of n-grams to their occurrences
+  "return a hash-map of internally sorted n-grams to their occurrences
   n n in n-grams
   colls a sequence of terms sequences
   preprocess-fn a function to apply to each terms sequence before extraction"

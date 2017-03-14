@@ -89,4 +89,27 @@
   )
 
 (facts "produce tweeters to follow suggestions"
-       (future-fact "make-ngrams"))
+       (future-facts "About `count-occurrences"
+                     (count-occurrences ["yo" "bro" "yo"]) => {"yo" 2 "bro" 1}
+                     (count-occurrences #(clojure.string/replace % "o" "") ["yo" "bro" "yo"]) => {"y" 2 "br" 1}
+                     )
+
+       (future-facts "About `extract-ngrams"
+                     (let [terms [["yo" "bro" "lol"] ["yo" "freak" "lol"]]
+                           f (fn [terms] (remove #(get #{"lol"} term) terms))] 
+                       (extract-ngrams 2 terms) => {["bro" "yo"] 1 ["bro" "lol"] 1
+                                                    ["freak" "yo"] 1 ["freak" "lol"] 1
+                                                    ["lol" "yo"] 2}
+                       (extract-ngrams f 2 terms) => {["bro" "yo"] 1
+                                                      ["freak" "yo"] 1}
+                       )
+                     )
+
+       (future-facts "About `restrict-occurrences-range"
+                     (let [occs {:a 2 :b 1 :c 3}
+                           l-b 1/3
+                           r-b 2/3] 
+                       (restrict-occurrences-range l-b r-b occs) => {:a 2}
+                       )
+                     )
+       )
