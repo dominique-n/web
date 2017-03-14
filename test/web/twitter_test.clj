@@ -11,7 +11,9 @@
             [org.httpkit.client :as http]
             [org.httpkit.fake :refer :all]
             [clojure.core.async :refer [go chan >!! >! <!! <! put!]]
-            [clojure.java.jdbc :as jdbc])
+            [clojure.java.jdbc :as jdbc]
+            [clojure.math.combinatorics :as combo]
+            )
   (:use [twitter.oauth]
         [twitter.callbacks]
         [twitter.callbacks.handlers]
@@ -85,3 +87,6 @@
        (keys (extract-tweet-fields (first tweets))) => (contains fields)
        )
   )
+
+(facts "produce tweeters to follow suggestions"
+       (future-fact "make-ngrams"))

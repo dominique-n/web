@@ -5,6 +5,7 @@
             [net.cgrand.enlive-html :as html]
             [clojure.java.jdbc :as jdbc]
             [org.httpkit.client :as http]
+            [clojure.math.combinatorics :as combo]
             )
   (:use [twitter.oauth]
         [twitter.callbacks]
@@ -61,3 +62,28 @@
 (def fields [:created_at :favorite_count :retweeted :id :entities :user :retweet_count])
 (defn extract-tweet-fields [tweet]
   (select-keys tweet fields))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;suggesting tweeters to follow
+
+(defn count-occurrences
+  "return a hash-map of tems to their occurrence
+  colls a sequence of terms
+  preprocess-fn a function to apply to the terms before extraction"
+  ([colls] (count-occurrences identity colls))
+  ([preprocess-fn colls]))
+
+(defn extract-ngrams
+  "return a hash-map of n-grams to their occurrences
+  n n in n-grams
+  colls a sequence of terms sequences
+  preprocess-fn a function to apply to each terms sequence before extraction"
+  ([n colls] (extract-ngrams identity n colls))
+  ([preprocess-fn n colls]))
+
+(defn restrict-occurrences-range 
+  "return a filtered array-map of [term occurrences] as of *-bound ratios
+  (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
+  occurences a  map of terms to their occurences"
+  [left-bound right-bound occurrences])
