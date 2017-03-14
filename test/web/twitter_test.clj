@@ -95,13 +95,10 @@
                      )
 
        (facts "About `extract-ngrams"
-                     (let [terms [["yo" "bro" "lol"] ["yo" "freak" "lol"]]
+                     (let [terms ["yo" "bro" "lol"]
                            f (fn [terms] (remove #(get #{"lol"} %) terms))] 
-                       (extract-ngrams 2 terms) => {["bro" "yo"] 1 ["bro" "lol"] 1
-                                                    ["freak" "yo"] 1 ["freak" "lol"] 1
-                                                    ["lol" "yo"] 2}
-                       (extract-ngrams f 2 terms) => {["bro" "yo"] 1
-                                                      ["freak" "yo"] 1}
+                       (extract-ngrams 2 terms) => (just [["bro" "yo"] ["bro" "lol"] ["lol" "yo"]] :in-any-order)
+                       (extract-ngrams f 2 terms) => [["bro" "yo"]]
                        )
                      )
 

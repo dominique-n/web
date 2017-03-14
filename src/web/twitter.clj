@@ -77,15 +77,13 @@
            {} (map preprocess-fn colls))))
 
 (defn extract-ngrams
-  "return a hash-map of internally sorted n-grams to their occurrences
+  "return a seq of sorted n-grams
   n n in n-grams
-  colls a sequence of terms sequences
-  preprocess-fn a function to apply to each terms sequence before extraction"
+  colls a sequence of terms
+  preprocess-fn a function to apply to the terms sequence before extraction"
   ([n colls] (extract-ngrams identity n colls))
   ([preprocess-fn n colls]
-   (->> colls (map preprocess-fn) (map sort)
-        (map #(combo/combinations % n)) flatten1
-        (count-occurrences))))
+   (combo/combinations (->> colls preprocess-fn sort) n)))
 
 (defn restrict-occurrences-range 
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
