@@ -105,7 +105,7 @@
                        )
                      )
 
-       (future-facts "About `restrict-occurrences-range"
+       (facts "About `restrict-occurrences-range"
                      (let [occs {:a 2 :b 1 :c 3}
                            l-b 1/3
                            r-b 2/3] 

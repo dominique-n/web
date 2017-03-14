@@ -88,7 +88,16 @@
         (count-occurrences))))
 
 (defn restrict-occurrences-range 
-  "return a filtered array-map of [term occurrences] as of *-bound ratios
+  "return a filtered hash-map of [term occurrences] as of *-bound ratios
   (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
   occurences a  map of terms to their occurences"
-  [left-bound right-bound occurrences])
+  [left-bound right-bound occurrences]
+  (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
+  (let [n (count occurrences)
+        left-drops (* n left-bound)
+        right-drops (* n (- 1 right-bound))
+        sorted-occs (sort-by val occurrences)]
+    (->> sorted-occs
+         (drop left-drops)
+         (drop-last right-drops)
+         (into {}))))
