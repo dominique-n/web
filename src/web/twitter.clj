@@ -102,14 +102,19 @@
           (drop left-drops)
           (drop-last right-drops)
           (into {}))))
-  ([occurrences]
-   (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
-         vmax (->> occurrences vals (apply max))
-         l-val (Math/pow vmax 1/2)
-         r-val (Math/pow vmax 3/4)
-         val-in? #(and (>= % (get percentiles 25)) (<= % (get percentiles 75)))]
-     (println percentiles)
-     (into {}
-           (filter #(-> % val val-in?) occurrences)))))
+  ([occurrences] (restrict-range :iqr occurrences))
+  ([method occurrences]
+   (letfn [(val-in? [l-v r-v v] (and (>= v l-v) (<= v r-v)))] 
+     (condp = method 
+       :rr (let [vmax (->> occurrences vals (apply max))
+                 l-val (Math/pow vmax 1/2)
+                 r-val (Math/pow vmax 3/4)
+                 val-in? (partial val-in? l-val r-val)]
+             (into {}
+                   (filter #(-> % val val-in?) occurrences)))
+       :iqr (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
+                  val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
+              (into {}
+                    (filter #(-> % val val-in?) occurrences)))))))
 
 (every? identity [true false])
