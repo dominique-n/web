@@ -13,6 +13,7 @@
             [clojure.core.async :refer [go chan >!! >! <!! <! put!]]
             [clojure.java.jdbc :as jdbc]
             [clojure.math.combinatorics :as combo]
+            [com.stuartsierra.frequencies :as freq]
             )
   (:use [twitter.oauth]
         [twitter.callbacks]
@@ -108,7 +109,7 @@
                            l-b 1/3
                            r-b 2/3] 
                        (restrict-range l-b r-b occs1) => {:a 2}
-                       (restrict-range occs2) => {:b 4 :c 5}
+                       (restrict-range occs2) => {:a 1 :b 4 :c 5}
                        )
                      )
        )

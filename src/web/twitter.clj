@@ -6,6 +6,7 @@
             [clojure.java.jdbc :as jdbc]
             [org.httpkit.client :as http]
             [clojure.math.combinatorics :as combo]
+            [com.stuartsierra.frequencies :as freq]
             )
   (:use [twitter.oauth]
         [twitter.callbacks]
@@ -102,10 +103,12 @@
           (drop-last right-drops)
           (into {}))))
   ([occurrences]
-   (let [vmax (->> occurrences vals (apply max))
+   (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
+         vmax (->> occurrences vals (apply max))
          l-val (Math/pow vmax 1/2)
          r-val (Math/pow vmax 3/4)
-         val-in? #(and (>= % l-val) (<= % r-val))]
+         val-in? #(and (>= % (get percentiles 25)) (<= % (get percentiles 75)))]
+     (println percentiles)
      (into {}
            (filter #(-> % val val-in?) occurrences)))))
 

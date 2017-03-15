@@ -13,6 +13,7 @@
                  [org.clojure/core.async  "0.2.395"]
                  [twitter-api  "1.8.0"]
                  [org.clojure/math.combinatorics  "0.1.4"]
+                 [com.stuartsierra/frequencies  "0.1.0"]
                  ]
   :profiles {:dev {:dependencies [[midje "1.7.0"]
                                   [test-with-files "0.1.1"] 
