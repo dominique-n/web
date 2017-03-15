@@ -89,7 +89,7 @@
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
   occurences a  map of terms to their occurences
   (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
-  when no bound given filter occs.range on log occurences scale as:
+  when no bound given filter occs.range is resricicted within [max-value^1/2, max-value^3/4]
   [pivot (Math/log (->> occurrences vals (apply max)))
   l-val (Math/exp (/ pivot 2))
   r-val (Math/exp (+ (/ pivot 2) (/ pivot 4)))
