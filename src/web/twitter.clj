@@ -90,7 +90,8 @@
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
   occurences a  map of terms to their occurences
   (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
-  when no bound given filter occs.range is resricicted within [max-value^1/2, max-value^3/4]
+  :rr filter occs.range is resricicted within [max-value^1/2, max-value^3/4]
+  :irq filter for occurrences within the interquartile range
   " 
   ([left-bound right-bound occurrences]
    (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
@@ -106,12 +107,14 @@
   ([method occurrences]
    (letfn [(val-in? [l-v r-v v] (and (>= v l-v) (<= v r-v)))] 
      (condp = method 
+       ;;return occurrences in range [max^0.5, max^0.75]]
        :rr (let [vmax (->> occurrences vals (apply max))
                  l-val (Math/pow vmax 1/2)
                  r-val (Math/pow vmax 3/4)
                  val-in? (partial val-in? l-val r-val)]
              (into {}
                    (filter #(-> % val val-in?) occurrences)))
+       ;;return occurrences within the interquartile range
        :iqr (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
                   val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
               (into {}
