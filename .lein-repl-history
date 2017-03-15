@@ -69,3 +69,8 @@
 (merge {:a 2} {:a 1})
 (System/getenv)
 (Math/log 10)
+(doc Math/pow)
+(doc Math/power)
+(Math/pow 2 3)
+(Math/pow 2 3/4)
+(Math/pow 2 2/4)

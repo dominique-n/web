@@ -105,9 +105,9 @@
           (drop-last right-drops)
           (into {}))))
   ([occurrences]
-   (let [pivot (Math/log (->> occurrences vals (apply max)))
-         l-val (Math/exp (/ pivot 2))
-         r-val (Math/exp (+ (/ pivot 2) (/ pivot 4)))
+   (let [vmax (->> occurrences vals (apply max))
+         l-val (Math/pow vmax 1/2)
+         r-val (Math/pow vmax 3/4)
          val-in? #(and (>= % l-val) (<= % r-val))]
      (into {}
            (filter #(-> % val val-in?) occurrences)))))
