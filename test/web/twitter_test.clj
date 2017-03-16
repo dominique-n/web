@@ -138,7 +138,8 @@
                        )
          )
        (facts "About `rand-take"
-                     (count (rand-take 100 (repeat 1000 1))) => #(and (> % 80) (< % 150)))
+              (rand-take 100 (repeat 1000 1)) => #(= (count %) 100)
+              )
        )
 
 (future-facts :integration)
