@@ -108,10 +108,12 @@
                            occs2 {:a 1 :b 4 :c 5 :d 9}
                            l-b 1/3
                            r-b 2/3] 
-                       (restrict-range l-b r-b occs1) => {:a 2}
-                       (restrict-range occs2) => {:a 1 :b 4 :c 5}
-                       (restrict-range :iqr occs2) => {:a 1 :b 4 :c 5}
-                       (restrict-range :rr occs2) => {:b 4 :c 5}
+                       (restrict-range l-b r-b occs1) => [:a]
+                       (restrict-range occs2) => [:a :b :c]
+                       (restrict-range :iqr occs2) => [:a :b :c]
+                       (restrict-range :rr occs2) => [:b :c]
                        )
                      )
        )
+
+
