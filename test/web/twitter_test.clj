@@ -114,6 +114,30 @@
                        (restrict-range :rr occs2) => [:b :c]
                        )
                      )
+
+       (let [twt1 {:followers_count 1000 :screen_name "bro" :hashtags (json/generate-string ["a" "b" "c"])}
+             twt2 {:followers_count 500 :screen_name "bro" :hashtags (json/generate-string ["z"])}
+             twt3 {:followers_count 10 :screen_name "bro" :hashtags (json/generate-string ["z" "y"])}
+             twts [twt1 twt2 twt3]]
+         (facts "About `filter-followers"
+                       (filter-followers #(and (> % 100) (< % 1000)) twts) => (just [twt2]) 
+                       (filter-followers #(< % 10000) twts) => (just twts)
+                       (filter-followers #(> % 1) twts) => (just twts)
+                       (filter-followers #(< % 10) twts) => empty?
+                       (filter-followers #(> % 1000) twts) => empty?
+                       )
+         (future-facts "About `filter-terms"
+                       (let [terms-pred1 #(clojure.set/intersection #{["a" "b"] ["a" "z"]} %)
+                             terms-pred2 #(clojure.set/intersection #{["b" "a"]} %)
+                             terms-pred3 #(clojure.set/intersection #{["a" "b"] ["z"]} %)]
+                         (filter-terms terms-pred1 twts) => (just [twt1])
+                         (filter-terms terms-pred2 twts) => empty?
+                         (filter-terms terms-pred3 twts) => (just twts)
+                         )
+                       )
+         )
+       (future-facts "About `rand-take"
+                     (count (rand-take 1/10 (repeat 1000 1))) => #(and (> % 90) (> % 110)))
        )
 
-
+(future-facts :integration)

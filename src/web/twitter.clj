@@ -121,3 +121,10 @@
                 (filter #(-> % val val-in?) occurrences)))))))
 
 (every? identity [true false])
+
+(defn filter-followers [pred colls]
+  (filter #(-> % :followers_count pred) colls))
+(defn filter-terms [pred colls])
+(defn rand-take [n colls]
+  (random-sample (/ (inc n) (count colls)) colls))
+(defn sample-bloggers [])
