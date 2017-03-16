@@ -129,5 +129,5 @@
   (filter #(-> % :hashtags (json/parse-string) extraction-*grams-fn set pred) colls))
 
 (defn rand-take [n colls]
-  (random-sample (/ (inc n) (count colls)) colls))
+  (random-sample (/ n (count colls)) colls))
 (defn sample-bloggers [])
