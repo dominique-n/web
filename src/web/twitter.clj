@@ -124,7 +124,10 @@
 
 (defn filter-followers [pred colls]
   (filter #(-> % :followers_count pred) colls))
-(defn filter-terms [pred colls])
+
+(defn filter-terms [extraction-*grams-fn pred colls]
+  (filter #(-> % :hashtags (json/parse-string) extraction-*grams-fn set pred) colls))
+
 (defn rand-take [n colls]
   (random-sample (/ (inc n) (count colls)) colls))
 (defn sample-bloggers [])

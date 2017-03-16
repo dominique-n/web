@@ -126,13 +126,14 @@
                        (filter-followers #(< % 10) twts) => empty?
                        (filter-followers #(> % 1000) twts) => empty?
                        )
-         (future-facts "About `filter-terms"
-                       (let [terms-pred1 #(clojure.set/intersection #{["a" "b"] ["a" "z"]} %)
-                             terms-pred2 #(clojure.set/intersection #{["b" "a"]} %)
-                             terms-pred3 #(clojure.set/intersection #{["a" "b"] ["z"]} %)]
-                         (filter-terms terms-pred1 twts) => (just [twt1])
-                         (filter-terms terms-pred2 twts) => empty?
-                         (filter-terms terms-pred3 twts) => (just twts)
+         (facts "About `filter-terms"
+                       (let [terms-pred1 #(seq (clojure.set/intersection #{["a" "b"] ["a" "z"]} %))
+                             terms-pred2 #(seq (clojure.set/intersection #{["b" "a"]} %))
+                             terms-pred3 #(seq (clojure.set/intersection #{["a" "b"] ["y" "z"]} %))
+                             extraction-2grams-fn (partial extract-ngrams 2)]
+                         (filter-terms extraction-2grams-fn terms-pred1 twts) => (just [twt1])
+                         (filter-terms extraction-2grams-fn terms-pred2 twts) => empty?
+                         (filter-terms extraction-2grams-fn terms-pred3 twts) => (just [twt1 twt3])
                          )
                        )
          )
