@@ -86,7 +86,6 @@
   ([preprocess-fn n colls]
    (combo/combinations (-> colls preprocess-fn sort) n)))
 
-;((restrict2iqr :iqr {:a 1 :b 4 :c 5 :d 9}) 1)
 (defn restrict2iqr 
   "return the interquartile range of terms as of their occurrence
   occurences a  map of terms to their occurences
