@@ -114,9 +114,9 @@
                 )
               )
 
-       (let [twt1 {:followers_count 1000 :screen_name "bro" :hashtags (json/generate-string ["a" "b" "c"])}
-             twt2 {:followers_count 500 :screen_name "fella" :hashtags (json/generate-string ["z"])}
-             twt3 {:followers_count 10 :screen_name "dude" :hashtags (json/generate-string ["z" "y"])}
+       (let [twt1 {:followers_count 1000 :screen_name "bro" :hashtags ["a" "b" "c"]}
+             twt2 {:followers_count 500 :screen_name "fella" :hashtags ["z"]}
+             twt3 {:followers_count 10 :screen_name "dude" :hashtags ["z" "y"]}
              twts [twt1 twt2 twt3]]
          (facts "About `filter-followers"
                 (filter-followers #(and (> % 100) (< % 1000)) twts) => (just [twt2]) 

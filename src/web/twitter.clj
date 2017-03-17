@@ -110,20 +110,18 @@
   (filter #(-> % :followers_count pred) colls))
 
 (defn filter-terms [extraction-*grams-fn pred colls]
-  (filter #(-> % :hashtags (json/parse-string) extraction-*grams-fn set pred) colls))
+  (filter #(-> % :hashtags extraction-*grams-fn set pred) colls))
 
 (defn rand-take [n colls]
   (repeatedly n #(rand-nth colls)))
 
 (defn sample-bloggers [*extract-ngrams-fn n-take colls]
-  (let [colls (map #(assoc % :hashtags (-> % :hashtags (json/parse-string))) colls)
+  (let [colls (map #(assoc % :hashtags (-> % :hashtags )) colls)
         terms-pred (->> colls (map :hashtags)
                        (map *extract-ngrams-fn) (remove nil?) flatten1 frequencies 
                        restrict2iqr)
-        followers-pred (->> colls (map :followers_count) restrict2iqr)
-        keep? #(every? identity [(-> % :hashtags *extract-ngrams-fn terms-pred) 
-                                
-                                 (-> % :followers_count followers-pred)])]
-    (->> colls (filter keep?) (map :screen_name) (rand-take n-take))
-    )
-  )
+        followers-pred (->> colls (map :followers_count) restrict2iqr)]
+    (->> colls 
+         (filter-followers followers-pred)
+         (filter-terms *extract-ngrams-fn terms-pred)
+         (map :screen_name) (rand-take n-take))))
