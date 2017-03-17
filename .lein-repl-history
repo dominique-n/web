@@ -89,3 +89,7 @@
 (set [1 2])
 (clojure.set/intersection #{1 2} #{3})
 (name :a)
+(every? identity 1 2)
+(every? identity [1 2])
+(every? identity [1 nil])
+(every? identity [1 -1])

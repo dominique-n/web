@@ -97,8 +97,10 @@
 
        (facts "About `extract-ngrams"
               (let [terms ["yo" "bro" "lol"]
+                    one ["yo"]
                     f (fn [terms] (remove #(get #{"lol"} %) terms))] 
                 (extract-ngrams 2 terms) => (just [["bro" "yo"] ["bro" "lol"] ["lol" "yo"]] :in-any-order)
+                (extract-ngrams 2 one) => empty?
                 (extract-ngrams f 2 terms) => [["bro" "yo"]]
                 )
               )
@@ -138,17 +140,17 @@
                   (filter-terms extraction-2grams-fn terms-pred3 twts) => (just [twt1 twt3])
                   )
                 )
-         )
        (facts "About `rand-take"
               (rand-take 100 (repeat 1000 1)) => #(= (count %) 100)
               )
 
-       (future-facts "About `sample-bloggers"
-                     (let [*extract-ng #(partial extract-ngrams 2)]
-                       (sample-bloggers *extract-ng 0 twts) => empty?
-                       (sample-bloggers *extract-ng 1 twts) => (just ["fella"])
-                       (sample-bloggers *extract-ng 2 twts) => (just ["fella"]))
-                     )
+       (facts "About `sample-bloggers"
+              (let [*extract-ng (partial extract-ngrams 2)]
+                (sample-bloggers *extract-ng 0 twts) => empty?
+                (sample-bloggers *extract-ng 1 twts) => (just )
+                (sample-bloggers *extract-ng 2 twts) => (just ["fella"]))
+              )
+         )
 
        )
 

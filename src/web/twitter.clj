@@ -109,25 +109,24 @@
   ([method occurrences]
    (let [val-in? (fn [l-v r-v v] (and (>= v l-v) (<= v r-v)))
          is-map (map? occurrences)
-         process-type (fn [occ] (if is-map (val occ) occ))
-         ;occurrences (map #(if is-map (val %) %) occurrences)
+         counts (if is-map (vals occurrences) occurrences)
          process-selector (fn [*val-in?] 
                             (if is-map
-                              (fn [occ] 
-                                (->> occurrences 
-                                     (filter #(-> % val *val-in?)) keys set
-                                     (clojure.set/intersection (set occ)) seq))
+                              (let [filtering-set (set (keys (filter #(-> % val *val-in?) occurrences)))]
+                                (fn [occ] 
+                                  (seq 
+                                    (clojure.set/intersection filtering-set (set occ)))))
                               *val-in?))] 
      (condp = method 
          ;;return occurrences in range [max^0.5, max^0.75]]
-         :rr (let [vmax (->> occurrences (map process-type) (apply max))
+         :rr (let [vmax (apply max counts)
                    l-val (Math/pow vmax 1/2)
                    r-val (Math/pow vmax 3/4)
                    *val-in? (partial val-in? l-val r-val)]
                (process-selector *val-in?)
                )
          ;;return occurrences within the interquartile range
-         :iqr (let [percentiles (:percentiles (freq/stats (frequencies (map process-type occurrences))))
+         :iqr (let [percentiles (:percentiles (freq/stats (frequencies counts)))
                     *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
                 (process-selector *val-in?)
                 )))))
@@ -141,14 +140,15 @@
 (defn rand-take [n colls]
   (repeatedly n #(rand-nth colls)))
 
-;(defn map-ngrams)
-
-(defn sample-bloggers [extract-ngrams-fn n-take colls]
-  (let [terms (-> colls :hashtags (json/parse-string) 
-                  (map extract-ngrams-fn) flatten1 frequencies 
-                  restrict-range)
-        terms-pred #(clojure.set/intersection (set terms) %)
-        followers-pred #()])
+(defn sample-bloggers [*extract-ngrams-fn n-take colls]
+  (let [colls (map #(assoc % :hashtags (-> % :hashtags (json/parse-string))) colls)
+        terms-pred (->> colls (map :hashtags)
+                       (map *extract-ngrams-fn) (remove nil?) flatten1 frequencies 
+                       (restrict-range :iqr))
+        followers-pred (->> colls (map :followers_count) restrict-range)
+        keep? #(every? identity [(-> % :hashtags *extract-ngrams-fn terms-pred) 
+                                
+                                 (-> % :followers_count followers-pred)])]
+    (->> colls (filter keep?) (map :screen_name) (rand-take n-take))
+    )
   )
-
-(freq/stats (frequencies [1 2 3 2 5]))
