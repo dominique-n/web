@@ -87,16 +87,14 @@
    (combo/combinations (-> colls preprocess-fn sort) n)))
 
 (defn restrict2iqr 
-  "return the interquartile range of terms as of their occurrence
-  occurences a  map of terms to their occurences
-  filter for occurrences within the interquartile range
-  " 
+  "filter for occurrences within the interquartile range
+  occurences a  map of terms to their occurences or a seq of occurrences " 
   [occurrences]
    (letfn [(val-in? [percentiles v]
              (and (>= v (get percentiles 25)) (<= v (get percentiles 75))))] 
      (cond
        (map? occurrences) (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
-                                *val-in? (partial val-in? percentiles )
+                                *val-in? (partial val-in? percentiles)
                                 filtering-set (set (keys (filter #(-> % val *val-in?) occurrences)))]
                             (fn [occ] 
                               (seq 
@@ -123,4 +121,4 @@
     (->> colls 
          (filter-followers followers-pred)
          (filter-terms *extract-ngrams-fn terms-pred)
-         (map :screen_name) (rand-take n-take))))
+         (map :screen_name) (rand-take n-take) distinct)))
