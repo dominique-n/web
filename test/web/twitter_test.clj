@@ -105,17 +105,12 @@
                 )
               )
 
-       (facts "About `restrict-range"
+       (facts "About `restrict2iqr"
               (let [occs1 {:a 2 :b 1 :c 3}
                     occs2 {:a 1 :b 4 :c 5 :d 9}
-                    counts [1 2 3 2 5]
-                    l-b 1/3
-                    r-b 2/3] 
-                (restrict-range l-b r-b occs1) => (just [:a])
-                (mapv (restrict-range occs2) [[:a] [:b] [:c] [:d]]) => (just [truthy truthy truthy falsey])
-                (mapv (restrict-range :iqr occs2) [[:a] [:b] [:c] [:d]]) => (just [truthy truthy truthy falsey])
-                (mapv (restrict-range :rr occs2) [[:a] [:b] [:c] [:d]]) => (just [falsey truthy truthy falsey])
-                (mapv (restrict-range counts) counts) => (just [falsey truthy truthy truthy falsey])
+                    counts [1 2 3 2 5]] 
+                (mapv (restrict2iqr occs2) [[:a] [:b] [:c] [:d]]) => (just [truthy truthy truthy falsey])
+                (mapv (restrict2iqr counts) counts) => (just [falsey truthy truthy truthy falsey])
                 )
               )
 

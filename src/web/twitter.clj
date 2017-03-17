@@ -86,50 +86,25 @@
   ([preprocess-fn n colls]
    (combo/combinations (-> colls preprocess-fn sort) n)))
 
-;((restrict-range :iqr {:a 1 :b 4 :c 5 :d 9}) 1)
-(defn restrict-range 
+;((restrict2iqr :iqr {:a 1 :b 4 :c 5 :d 9}) 1)
+(defn restrict2iqr 
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
   occurences a  map of terms to their occurences
-  (left|right)-bound takes a proportion to respectively filter out based on occurences ordering
-  :rr filter occs.range is resricicted within [max-value^1/2, max-value^3/4]
-  :irq filter for occurrences within the interquartile range
+  filter for occurrences within the interquartile range
   " 
-  ([left-bound right-bound occurrences]
-   (assert (and (< left-bound 1) (<= right-bound 1)) "*-bound should be ratios")
-   (let [n (count occurrences)
-         left-drops (* n left-bound)
-         right-drops (* n (- 1 right-bound))]
-     (->> occurrences
-          (sort-by val)
-          (drop left-drops)
-          (drop-last right-drops)
-          (map first)
-          )))
-  ([occurrences] (restrict-range :iqr occurrences))
-  ([method occurrences]
-   (let [val-in? (fn [l-v r-v v] (and (>= v l-v) (<= v r-v)))
-         is-map (map? occurrences)
-         counts (if is-map (vals occurrences) occurrences)
-         process-selector (fn [*val-in?] 
-                            (if is-map
-                              (let [filtering-set (set (keys (filter #(-> % val *val-in?) occurrences)))]
-                                (fn [occ] 
-                                  (seq 
-                                    (clojure.set/intersection filtering-set (set occ)))))
-                              *val-in?))] 
-     (condp = method 
-         ;;return occurrences in range [max^0.5, max^0.75]]
-         :rr (let [vmax (apply max counts)
-                   l-val (Math/pow vmax 1/2)
-                   r-val (Math/pow vmax 3/4)
-                   *val-in? (partial val-in? l-val r-val)]
-               (process-selector *val-in?)
-               )
-         ;;return occurrences within the interquartile range
-         :iqr (let [percentiles (:percentiles (freq/stats (frequencies counts)))
-                    *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
-                (process-selector *val-in?)
-                )))))
+  [occurrences]
+   (let [val-in? (fn [l-v r-v v] (and (>= v l-v) (<= v r-v)))] 
+     (cond
+       (map? occurrences) (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
+                                *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))
+                                filtering-set (set (keys (filter #(-> % val *val-in?) occurrences)))]
+                            (fn [occ] 
+                              (seq 
+                                (clojure.set/intersection filtering-set (set occ)))))
+       :else (let [percentiles (:percentiles (freq/stats (frequencies occurrences)))
+                   *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
+               *val-in?
+               ))))
 
 (defn filter-followers [pred colls]
   (filter #(-> % :followers_count pred) colls))
@@ -144,8 +119,8 @@
   (let [colls (map #(assoc % :hashtags (-> % :hashtags (json/parse-string))) colls)
         terms-pred (->> colls (map :hashtags)
                        (map *extract-ngrams-fn) (remove nil?) flatten1 frequencies 
-                       (restrict-range :iqr))
-        followers-pred (->> colls (map :followers_count) restrict-range)
+                       restrict2iqr)
+        followers-pred (->> colls (map :followers_count) restrict2iqr)
         keep? #(every? identity [(-> % :hashtags *extract-ngrams-fn terms-pred) 
                                 
                                  (-> % :followers_count followers-pred)])]
