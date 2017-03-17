@@ -91,55 +91,64 @@
 
 (facts "produce tweeters to follow suggestions"
        (facts "About `count-occurrences"
-                     (count-occurrences ["yo" "bro" "yo"]) => {"yo" 2 "bro" 1}
-                     (count-occurrences #(clojure.string/replace % "o" "") ["yo" "bro" "yo"]) => {"y" 2 "br" 1}
-                     )
+              (count-occurrences ["yo" "bro" "yo"]) => {"yo" 2 "bro" 1}
+              (count-occurrences #(clojure.string/replace % "o" "") ["yo" "bro" "yo"]) => {"y" 2 "br" 1}
+              )
 
        (facts "About `extract-ngrams"
-                     (let [terms ["yo" "bro" "lol"]
-                           f (fn [terms] (remove #(get #{"lol"} %) terms))] 
-                       (extract-ngrams 2 terms) => (just [["bro" "yo"] ["bro" "lol"] ["lol" "yo"]] :in-any-order)
-                       (extract-ngrams f 2 terms) => [["bro" "yo"]]
-                       )
-                     )
+              (let [terms ["yo" "bro" "lol"]
+                    f (fn [terms] (remove #(get #{"lol"} %) terms))] 
+                (extract-ngrams 2 terms) => (just [["bro" "yo"] ["bro" "lol"] ["lol" "yo"]] :in-any-order)
+                (extract-ngrams f 2 terms) => [["bro" "yo"]]
+                )
+              )
 
        (facts "About `restrict-range"
-                     (let [occs1 {:a 2 :b 1 :c 3}
-                           occs2 {:a 1 :b 4 :c 5 :d 9}
-                           l-b 1/3
-                           r-b 2/3] 
-                       (restrict-range l-b r-b occs1) => [:a]
-                       (restrict-range occs2) => [:a :b :c]
-                       (restrict-range :iqr occs2) => [:a :b :c]
-                       (restrict-range :rr occs2) => [:b :c]
-                       )
-                     )
+              (let [occs1 {:a 2 :b 1 :c 3}
+                    occs2 {:a 1 :b 4 :c 5 :d 9}
+                    counts [1 2 3 2 5]
+                    l-b 1/3
+                    r-b 2/3] 
+                (restrict-range l-b r-b occs1) => (just [:a])
+                (mapv (restrict-range occs2) [[:a] [:b] [:c] [:d]]) => (just [truthy truthy truthy falsey])
+                (mapv (restrict-range :iqr occs2) [[:a] [:b] [:c] [:d]]) => (just [truthy truthy truthy falsey])
+                (mapv (restrict-range :rr occs2) [[:a] [:b] [:c] [:d]]) => (just [falsey truthy truthy falsey])
+                (mapv (restrict-range counts) counts) => (just [falsey truthy truthy truthy falsey])
+                )
+              )
 
        (let [twt1 {:followers_count 1000 :screen_name "bro" :hashtags (json/generate-string ["a" "b" "c"])}
-             twt2 {:followers_count 500 :screen_name "bro" :hashtags (json/generate-string ["z"])}
-             twt3 {:followers_count 10 :screen_name "bro" :hashtags (json/generate-string ["z" "y"])}
+             twt2 {:followers_count 500 :screen_name "fella" :hashtags (json/generate-string ["z"])}
+             twt3 {:followers_count 10 :screen_name "dude" :hashtags (json/generate-string ["z" "y"])}
              twts [twt1 twt2 twt3]]
          (facts "About `filter-followers"
-                       (filter-followers #(and (> % 100) (< % 1000)) twts) => (just [twt2]) 
-                       (filter-followers #(< % 10000) twts) => (just twts)
-                       (filter-followers #(> % 1) twts) => (just twts)
-                       (filter-followers #(< % 10) twts) => empty?
-                       (filter-followers #(> % 1000) twts) => empty?
-                       )
+                (filter-followers #(and (> % 100) (< % 1000)) twts) => (just [twt2]) 
+                (filter-followers #(< % 10000) twts) => (just twts)
+                (filter-followers #(> % 1) twts) => (just twts)
+                (filter-followers #(< % 10) twts) => empty?
+                (filter-followers #(> % 1000) twts) => empty?
+                )
          (facts "About `filter-terms"
-                       (let [terms-pred1 #(seq (clojure.set/intersection #{["a" "b"] ["a" "z"]} %))
-                             terms-pred2 #(seq (clojure.set/intersection #{["b" "a"]} %))
-                             terms-pred3 #(seq (clojure.set/intersection #{["a" "b"] ["y" "z"]} %))
-                             extraction-2grams-fn (partial extract-ngrams 2)]
-                         (filter-terms extraction-2grams-fn terms-pred1 twts) => (just [twt1])
-                         (filter-terms extraction-2grams-fn terms-pred2 twts) => empty?
-                         (filter-terms extraction-2grams-fn terms-pred3 twts) => (just [twt1 twt3])
-                         )
-                       )
+                (let [terms-pred1 #(seq (clojure.set/intersection #{["a" "b"] ["a" "z"]} %))
+                      terms-pred2 #(seq (clojure.set/intersection #{["b" "a"]} %))
+                      terms-pred3 #(seq (clojure.set/intersection #{["a" "b"] ["y" "z"]} %))
+                      extraction-2grams-fn (partial extract-ngrams 2)]
+                  (filter-terms extraction-2grams-fn terms-pred1 twts) => (just [twt1])
+                  (filter-terms extraction-2grams-fn terms-pred2 twts) => empty?
+                  (filter-terms extraction-2grams-fn terms-pred3 twts) => (just [twt1 twt3])
+                  )
+                )
          )
        (facts "About `rand-take"
               (rand-take 100 (repeat 1000 1)) => #(= (count %) 100)
               )
+
+       (future-facts "About `sample-bloggers"
+                     (let [*extract-ng #(partial extract-ngrams 2)]
+                       (sample-bloggers *extract-ng 0 twts) => empty?
+                       (sample-bloggers *extract-ng 1 twts) => (just ["fella"])
+                       (sample-bloggers *extract-ng 2 twts) => (just ["fella"]))
+                     )
+
        )
 
-(future-facts :integration)

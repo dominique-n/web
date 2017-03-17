@@ -76,3 +76,16 @@
 (Math/pow 2 2/4)
 (doc frequencies)
 (frequencies [1 1 2 1])
+(type 12
+)
+(type {})
+(type {:a 1})
+(map? {}
+)
+(map? {})
+(doc clojure.lang.MapEquivalence)
+(class {})
+(class {:a 2})
+(set [1 2])
+(clojure.set/intersection #{1 2} #{3})
+(name :a)

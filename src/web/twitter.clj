@@ -86,6 +86,7 @@
   ([preprocess-fn n colls]
    (combo/combinations (-> colls preprocess-fn sort) n)))
 
+;((restrict-range :iqr {:a 1 :b 4 :c 5 :d 9}) 1)
 (defn restrict-range 
   "return a filtered hash-map of [term occurrences] as of *-bound ratios
   occurences a  map of terms to their occurences
@@ -106,21 +107,30 @@
           )))
   ([occurrences] (restrict-range :iqr occurrences))
   ([method occurrences]
-   (letfn [(val-in? [l-v r-v v] (and (>= v l-v) (<= v r-v)))] 
-     (map first
-       (condp = method 
+   (let [val-in? (fn [l-v r-v v] (and (>= v l-v) (<= v r-v)))
+         is-map (map? occurrences)
+         process-type (fn [occ] (if is-map (val occ) occ))
+         ;occurrences (map #(if is-map (val %) %) occurrences)
+         process-selector (fn [*val-in?] 
+                            (if is-map
+                              (fn [occ] 
+                                (->> occurrences 
+                                     (filter #(-> % val *val-in?)) keys set
+                                     (clojure.set/intersection (set occ)) seq))
+                              *val-in?))] 
+     (condp = method 
          ;;return occurrences in range [max^0.5, max^0.75]]
-         :rr (let [vmax (->> occurrences vals (apply max))
+         :rr (let [vmax (->> occurrences (map process-type) (apply max))
                    l-val (Math/pow vmax 1/2)
                    r-val (Math/pow vmax 3/4)
-                   val-in? (partial val-in? l-val r-val)]
-               (filter #(-> % val val-in?) occurrences))
+                   *val-in? (partial val-in? l-val r-val)]
+               (process-selector *val-in?)
+               )
          ;;return occurrences within the interquartile range
-         :iqr (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
-                    val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
-                (filter #(-> % val val-in?) occurrences)))))))
-
-(every? identity [true false])
+         :iqr (let [percentiles (:percentiles (freq/stats (frequencies (map process-type occurrences))))
+                    *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
+                (process-selector *val-in?)
+                )))))
 
 (defn filter-followers [pred colls]
   (filter #(-> % :followers_count pred) colls))
@@ -131,6 +141,14 @@
 (defn rand-take [n colls]
   (repeatedly n #(rand-nth colls)))
 
-(defn sample-bloggers [])
+;(defn map-ngrams)
 
-(repeatedly 3 #(rand-nth (range 10)))
+(defn sample-bloggers [extract-ngrams-fn n-take colls]
+  (let [terms (-> colls :hashtags (json/parse-string) 
+                  (map extract-ngrams-fn) flatten1 frequencies 
+                  restrict-range)
+        terms-pred #(clojure.set/intersection (set terms) %)
+        followers-pred #()])
+  )
+
+(freq/stats (frequencies [1 2 3 2 5]))
