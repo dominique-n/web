@@ -88,23 +88,23 @@
 
 ;((restrict2iqr :iqr {:a 1 :b 4 :c 5 :d 9}) 1)
 (defn restrict2iqr 
-  "return a filtered hash-map of [term occurrences] as of *-bound ratios
+  "return the interquartile range of terms as of their occurrence
   occurences a  map of terms to their occurences
   filter for occurrences within the interquartile range
   " 
   [occurrences]
-   (let [val-in? (fn [l-v r-v v] (and (>= v l-v) (<= v r-v)))] 
+   (letfn [(val-in? [percentiles v]
+             (and (>= v (get percentiles 25)) (<= v (get percentiles 75))))] 
      (cond
        (map? occurrences) (let [percentiles (:percentiles (freq/stats (frequencies (vals occurrences))))
-                                *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))
+                                *val-in? (partial val-in? percentiles )
                                 filtering-set (set (keys (filter #(-> % val *val-in?) occurrences)))]
                             (fn [occ] 
                               (seq 
                                 (clojure.set/intersection filtering-set (set occ)))))
        :else (let [percentiles (:percentiles (freq/stats (frequencies occurrences)))
-                   *val-in? (partial val-in? (get percentiles 25) (get percentiles 75))]
-               *val-in?
-               ))))
+                   *val-in? (partial val-in? percentiles)]
+               *val-in?))))
 
 (defn filter-followers [pred colls]
   (filter #(-> % :followers_count pred) colls))
