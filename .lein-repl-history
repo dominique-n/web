@@ -93,3 +93,5 @@
 (every? identity [1 2])
 (every? identity [1 nil])
 (every? identity [1 -1])
+(doc clojure.set/difference)
+(doc clojure.set/subset?)

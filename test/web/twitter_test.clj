@@ -142,8 +142,12 @@
        (facts "About `sample-bloggers"
               (let [*extract-ng (partial extract-ngrams 2)]
                 (sample-bloggers *extract-ng 0 twts) => empty?
-                (sample-bloggers *extract-ng 1 twts) => (just )
-                (sample-bloggers *extract-ng 2 twts) => (just ["fella"]))
+                (sample-bloggers *extract-ng 1 twts) => #(clojure.set/subset? (set %) #{"dude" "bro"})
+                (sample-bloggers *extract-ng 1 twts) => #(= (count %) 1)
+                (sample-bloggers *extract-ng 2 twts) => #(clojure.set/subset? (set %) #{"dude" "bro"})
+                (sample-bloggers *extract-ng 2 twts) => #(pos? (count %))
+                (sample-bloggers *extract-ng 2 twts) => #(<= (count %) 2)
+                )
               )
          )
 
