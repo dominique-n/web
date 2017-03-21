@@ -13,8 +13,9 @@
    :google {:api-key (get env "GOOGLE_API_KEY")
             :client-id (get env "GOOGLE_CLIENT_ID")
             :client-secret (get env "GOOGLE_CLIENT_SECRET")}
-   :goodreads {:key (get env "GOODREADS-KEY")
-               :secret (get env "GOODREADS-SECRET")}
+   :goodreads {:key (get env "GOODREADS_KEY")
+               :secret (get env "GOODREADS_SECRET")}
+   :guardian {:api-key (get env "GUARDIAN_KEY")}
    :facebook {}
    :meetup {}
    :quora {}})

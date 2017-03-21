@@ -9,7 +9,7 @@
   <scm>
     <connection>scm:git:git://github.com/dominique-n/web.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/dominique-n/web.git</developerConnection>
-    <tag>183c803edfc656d2236ee2fec90dcf262faa1cd3
+    <tag>faf5a7401722ec0a16de9e221f66e78e00089ac0
 </tag>
     <url>https://github.com/dominique-n/web</url>
   </scm>
@@ -115,6 +115,16 @@
       <groupId>twitter-api</groupId>
       <artifactId>twitter-api</artifactId>
       <version>1.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>math.combinatorics</artifactId>
+      <version>0.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.stuartsierra</groupId>
+      <artifactId>frequencies</artifactId>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>midje</groupId>
