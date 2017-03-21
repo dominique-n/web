@@ -6,6 +6,7 @@
             [clojure.java.jdbc :as jdbc]
             [org.httpkit.client :as http]
             [web.credentials :as creds]
+            [web.helpers :refer :all]
             ))
 
 
@@ -17,13 +18,32 @@
            :editions "https://content.guardianapis.com/editions"
            :item "https://content.guardianapis.com/"})
 
+(defn respect-quota [headers])
+
 (defn http-iterate [endpoint query-params]
-  (let [query-params0 (merge {:api-key *api-key* :format "json" page-size 50} query-params)
-        http-get (partial http/get (endpoint urls))
-        {:keys [status0 headers0 body0 error0 opts0]} @(http-get :query-params query-params0)
-        (if (= status 200)
-          )]
-    ))
+  (let [query-params0 {:api-key *api-key* :format "json" :page-size 50 :timeout 1000}
+        query-params (merge  query-params0 query-params)
+        http-get (partial http/get (endpoint urls))]
+    (->> {:page 0}
+         (iterate (fn [{page :page headers :headers}]
+                    (if page
+                      (do (if headers (respect-quota headers))
+                          (let [page (inc page)
+                                query-params (assoc query-params :page page)
+                                {:keys [status headers body error opts]} @(http-get {:query-params query-params})
+                                response (:response (json/parse-string body true))
+                                *status (:status response)
+                                {:keys [pages pageSize results total]} response
+                                ]
+                            (cond
+                              error (throw (Exception. error))
+                              (not= status 200) (throw (Exception. (str "status: " status)))
+                              (not= *status "ok") (throw (Exception. (str "api status: " *status)))
+                              (= page pages) {:results results}
+                              :else {:page page :headers headers :results results})))
+                      )))
+    next (take-while identity)
+    (map :results))))
 
 (defn take-n-item [n http-it])
 

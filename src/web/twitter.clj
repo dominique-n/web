@@ -7,6 +7,7 @@
             [org.httpkit.client :as http]
             [clojure.math.combinatorics :as combo]
             [com.stuartsierra.frequencies :as freq]
+            [web.helpers :refer :all]
             )
   (:use [twitter.oauth]
         [twitter.callbacks]
@@ -14,9 +15,6 @@
         [twitter.api.restful])
   (:import [twitter.callbacks.protocols SyncSingleCallback]))
 
-
-(defn flatten1 [coll]
-  (for [x coll, xx x] xx))
 
 (defn extract-max-id [body]
   (if-let [next-results (-> body :search_metadata :next_results)]

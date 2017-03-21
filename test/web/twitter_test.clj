@@ -23,9 +23,6 @@
 
 
 
-(facts "About `flatten1"
-       (flatten1 [[1 2] [3]]) => [1 2 3])
-
 (facts "About `extract-max-id"
        (extract-max-id {:search_metadata {:next_results "?max_id=123&q="}}) => "123"
        (extract-max-id {}) => nil?

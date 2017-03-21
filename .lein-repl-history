@@ -107,3 +107,4 @@
 (sequential? {})
 (sequential? {:1 1})
 (map? {})
+(str "helo" "bro")
