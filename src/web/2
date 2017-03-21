@@ -26,6 +26,8 @@
         http-get (partial http/get (endpoint urls))]
     (->> {:page 0}
          (iterate (fn [{page :page headers :headers}]
+                    (println "===")
+                    (println "previous page" page)
                     (if page
                       (do (if headers (respect-quota headers))
                           (if (nil? page) (println "nil page enters loop"))
@@ -36,11 +38,14 @@
                                 *status (:status response)
                                 {:keys [pages pageSize results total]} response
                                 ]
+                            (println "query-params" query-params)
+                            (println "page no " page "total pages" pages)
                             (cond
                               error (throw (Exception. error))
                               (not= status 200) (throw (Exception. (str "status: " status)))
                               (not= *status "ok") (throw (Exception. (str "api status: " *status)))
-                              (= page pages) {:results results}
+                              (= page pages) (do (println "page = pages")
+                                                 {:results results})
                               :else {:page page :headers headers :results results})))
                       )))
     next (take-while identity)
