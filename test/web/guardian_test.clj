@@ -15,18 +15,26 @@
             [clojure.java.jdbc :as jdbc]
             ))
 
+;(let [path "dev-resources/guardian/"
+      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
+      ;body (json/parse-string (:body http-response) true)]
+  ;(println (-> http-response :headers keys))
+  ;(println (-> http-response :headers))
+  ;)
 
 (def api-key (-> creds/portfolio :guardian :api-key))
 
 (let [path "dev-resources/guardian/"
       http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      ;body (-> (str path "content_http_body.txt") slurp (json/parse-string true))] 
       body (json/parse-string (:body http-response) true)] 
   (with-fake-http [(re-pattern (:content urls)) http-response
                    ;(re-pattern (str "^" (:content urls))) :deny
                    ]
 
-    (future-facts "About `apply-quota")
+    (facts "About `respect-quota"
+                  (respect-quota {:x-ratelimit-remaining-day "1"}) => nil?
+                  (respect-quota {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
+                  )
 
     (facts :http-iterate
            (facts "About `http-iterate"
@@ -54,6 +62,9 @@
                    (http-iterate :content {:q "brexit"}) => (throws Exception "api status: not ok")
                    (provided
                      (http/get & anything) => (future {:status 200 :body response}))))
+           ;;don't quotas slow down testing
+           (against-background
+             (respect-quota anything) => nil)
            )
     )
 
@@ -61,7 +72,7 @@
                 (let [http-it (repeat (-> body :response :results))]
                   (take-n-item 3 http-it) => (three-of map?)
                   (take-n-item 3 http-it) => (has every? :apiUrl)
-                  (take-n-item 500 http-it) => (n-of #(contains? % :apiUrl) 500)
+                  (take-n-item 600 http-it) => (n-of #(contains? % :apiUrl) 600)
                   ) 
                 )
   )

@@ -18,7 +18,10 @@
            :editions "https://content.guardianapis.com/editions"
            :item "https://content.guardianapis.com/"})
 
-(defn respect-quota [headers])
+(defn respect-quota [headers]
+  (if (-> headers :x-ratelimit-remaining-day Integer. pos?)
+    (Thread/sleep 250)
+    (throw (Exception. "daily quota used"))))
 
 (defn http-iterate [endpoint query-params]
   (let [query-params0 {:api-key *api-key* :format "json" :page-size 50 :timeout 1000}
