@@ -20,7 +20,7 @@
 
 (defn respect-quota [headers]
   (if (-> headers :x-ratelimit-remaining-day Integer. pos?)
-    (Thread/sleep 250)
+    (Thread/sleep 100)
     (throw (Exception. "daily quota used"))))
 
 (defn http-iterate [endpoint query-params]
