@@ -18,8 +18,9 @@
 ;(let [path "dev-resources/guardian/"
       ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
       ;body (json/parse-string (:body http-response) true)]
-  ;(println (-> http-response :headers keys))
-  ;(println (-> http-response :headers))
+  ;;(println (-> http-response :headers keys))
+  ;;(println (-> http-response :headers))
+  ;;(println (-> body :response :results first :apiUrl))
   ;)
 
 (def api-key (-> creds/portfolio :guardian :api-key))
@@ -73,6 +74,8 @@
                   (take-n-item 3 http-it) => (three-of map?)
                   (take-n-item 3 http-it) => (has every? :apiUrl)
                   (take-n-item 600 http-it) => (n-of #(contains? % :apiUrl) 600)
+
+                  (take-n-item :apiUrl 5 http-it) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5)
                   ) 
                 )
   )

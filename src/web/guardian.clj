@@ -49,6 +49,7 @@
     next (take-while identity)
     (map :results))))
 
-(defn take-n-item [n http-it]
-  (->> http-it flatten1 (take n)))
+(defn take-n-item 
+  ([n http-it] (take-n-item identity n http-it))
+  ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
 
