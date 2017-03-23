@@ -48,30 +48,30 @@
                   (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
                   )
 
-    (facts :http-iterate
-           (facts "About `http-iterate"
-                  (count (http-iterate :content {:q "brexit"})) => 263
-                  (flatten1 (http-iterate :content {:q "brexit"})) => (n-of map? 13150)
-                  (flatten1 (http-iterate :content {:q "brexit"})) => (has every? #(contains? % :apiUrl))
+    (facts :http-content
+           (facts "About `http-content"
+                  (count (http-content {:q "brexit"})) => 263
+                  (flatten1 (http-content {:q "brexit"})) => (n-of map? 13150)
+                  (flatten1 (http-content {:q "brexit"})) => (has every? #(contains? % :apiUrl))
                   ) 
 
-           (fact "`http-iterate should handle http errors"
+           (fact "`http-content should handle http errors"
                  (let [error-msg "http error returned"
                        response {:error error-msg :status "900"}]
-                   (http-iterate :content {:q "brexit"}) => (throws Exception error-msg)
+                   (http-content {:q "brexit"}) => (throws Exception error-msg)
                    (provided
                      (http/get & anything) => (future {:error error-msg}))))
 
-           (fact "`http-iterate should handle non 200 status"
+           (fact "`http-content should handle non 200 status"
                  (let [error-msg "status: 401"
                        response {:status 401}]
-                   (http-iterate :content {:q "brexit"}) => (throws Exception error-msg)
+                   (http-content {:q "brexit"}) => (throws Exception error-msg)
                    (provided
                      (http/get & anything) => (future response))))
 
-           (fact "`http-iterate should handle non results status"
+           (fact "`http-content should handle non results status"
                  (let [response (json/generate-string {:response {:status "not ok"}})]
-                   (http-iterate :content {:q "brexit"}) => (throws Exception "api status: not ok")
+                   (http-content {:q "brexit"}) => (throws Exception "api status: not ok")
                    (provided
                      (http/get & anything) => (future {:status 200 :body response}))))
            ;;don't quotas slow down testing
