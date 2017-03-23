@@ -19,30 +19,43 @@
 (def api-key (-> creds/portfolio :guardian :api-key))
 (println api-key)
 
-;(let [path "dev-resources/guardian/"
-      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      ;body (json/parse-string (:body http-response) true)
-      ;url (-> body :response :results first :apiUrl)]
-  ;;(println (-> http-response :headers keys))
-  ;;(println (-> http-response :headers))
+(let [path "dev-resources/guardian/"
+      http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
+      body (json/parse-string (:body http-response) true)
+      api-urls (->> body :response :results (mapv :apiUrl))
+      api-url (first api-urls)
+      items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
+      ]
+  (println api-url)
+  (println (first items))
+  ;(println (-> http-response :headers keys))
+  ;(println (-> http-response :headers))
   ;(println (-> body :response :results first :apiUrl))
   ;(def single @(http/get url {:query-params {:format "json" :api-key api-key :show-fields ["headline" "body"]}}))
-  ;)
+  )
 
 ;(-> single :body (json/parse-string true) :response :content)
 
 (let [path "dev-resources/guardian/"
       http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      body (json/parse-string (:body http-response) true)] 
+      body (json/parse-string (:body http-response) true)
+      api-urls (->> body :response :results (mapv :apiUrl))
+      items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
+      ] 
   (with-fake-http [(re-pattern (:content urls)) http-response
-                   ;(re-pattern (str "^" (:content urls))) :deny
+                   (first api-urls) (first items)
+                   (second api-urls) (second items)
                    ]
 
     (facts "About `respect-quota"
-                  (respect-quota {:x-ratelimit-remaining-day "1"}) => nil?
+                  (respect-quota {:x-ratelimit-remaining-day "1"}) => "remains 1"
+                  (provided
+                    (sleep 100) => "remains 1")
                   (respect-quota {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
 
-                  (respect-quota 50 {:x-ratelimit-remaining-day "51"}) => nil?
+                  (respect-quota 50 {:x-ratelimit-remaining-day "51"}) => "remains 1"
+                  (provided
+                    (sleep 100) => "remains 1")
                   (respect-quota 50 {:x-ratelimit-remaining-day "50"}) => (throws Exception "daily quota used")
                   (respect-quota 50 {:x-ratelimit-remaining-day "1"}) => (throws Exception "daily quota used")
                   (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")

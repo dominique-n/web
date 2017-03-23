@@ -18,13 +18,16 @@
            :editions "https://content.guardianapis.com/editions"
            :item "https://content.guardianapis.com/"})
 
+(defn sleep [ms] (Thread/sleep ms))
+
 (defn respect-quota 
+  ([] (sleep 100))
   ([headers] (respect-quota 0 headers))
   ([page-size headers]
    (let [remaining-queries (-> headers :x-ratelimit-remaining-day Integer.)
          projected-queries (- remaining-queries page-size)]
      (if (pos? projected-queries)
-       (Thread/sleep 100)
+       (sleep 100)
        (throw (Exception. "daily quota used"))))))
 
 (defn http-content [query-params]
@@ -58,9 +61,9 @@
   ([n http-it] (take-n-item identity n http-it))
   ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
 
-(defn http-singleitem 
-  ([api-url])
-  ([query-params api-url]
-   (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)]
-     @(http/get api-url {:query-params query-params}))))
+(defn http-singleitems 
+  ([query-params api-urls]
+   (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)
+         http-get #(http/get % {:query-params query-params})]
+     ())))
 
