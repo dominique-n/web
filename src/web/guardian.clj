@@ -39,7 +39,6 @@
          (iterate (fn [{page :page headers :headers}]
                     (if page
                       (do (if headers (*respect-quota headers))
-                          (if (nil? page) (println "nil page enters loop"))
                           (let [page (inc page)
                                 query-params (assoc query-params :page page)
                                 {:keys [status headers body error opts]} @(http-get {:query-params query-params})
@@ -62,8 +61,11 @@
   ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
 
 (defn http-singleitems 
+  ([api-urls] (http-singleitems {} api-urls))
   ([query-params api-urls]
    (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)
-         http-get #(http/get % {:query-params query-params})]
-     ())))
+         http-get (fn [api-url] 
+                    (respect-quota)
+                    @(http/get api-url {:query-params query-params}))]
+     (map http-get api-urls))))
 

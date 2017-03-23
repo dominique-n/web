@@ -17,22 +17,22 @@
 
 
 (def api-key (-> creds/portfolio :guardian :api-key))
-(println api-key)
+;(println api-key)
 
-(let [path "dev-resources/guardian/"
-      http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      body (json/parse-string (:body http-response) true)
-      api-urls (->> body :response :results (mapv :apiUrl))
-      api-url (first api-urls)
-      items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
-      ]
-  (println api-url)
-  (println (first items))
-  ;(println (-> http-response :headers keys))
-  ;(println (-> http-response :headers))
-  ;(println (-> body :response :results first :apiUrl))
-  ;(def single @(http/get url {:query-params {:format "json" :api-key api-key :show-fields ["headline" "body"]}}))
-  )
+;(let [path "dev-resources/guardian/"
+      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
+      ;body (json/parse-string (:body http-response) true)
+      ;api-urls (->> body :response :results (mapv :apiUrl))
+      ;api-url (first api-urls)
+      ;items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
+      ;]
+  ;(println api-url)
+  ;(println (first items))
+  ;;(println (-> http-response :headers keys))
+  ;;(println (-> http-response :headers))
+  ;;(println (-> body :response :results first :apiUrl))
+  ;;(def single @(http/get url {:query-params {:format "json" :api-key api-key :show-fields ["headline" "body"]}}))
+  ;)
 
 ;(-> single :body (json/parse-string true) :response :content)
 
@@ -42,24 +42,25 @@
       api-urls (->> body :response :results (mapv :apiUrl))
       items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
       ] 
+  ;(println (first items))
   (with-fake-http [(re-pattern (:content urls)) http-response
                    (first api-urls) (first items)
                    (second api-urls) (second items)
                    ]
 
     (facts "About `respect-quota"
-                  (respect-quota {:x-ratelimit-remaining-day "1"}) => "remains 1"
-                  (provided
-                    (sleep 100) => "remains 1")
-                  (respect-quota {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
+           (respect-quota {:x-ratelimit-remaining-day "1"}) => "remains 1"
+           (provided
+             (sleep 100) => "remains 1")
+           (respect-quota {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
 
-                  (respect-quota 50 {:x-ratelimit-remaining-day "51"}) => "remains 1"
-                  (provided
-                    (sleep 100) => "remains 1")
-                  (respect-quota 50 {:x-ratelimit-remaining-day "50"}) => (throws Exception "daily quota used")
-                  (respect-quota 50 {:x-ratelimit-remaining-day "1"}) => (throws Exception "daily quota used")
-                  (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
-                  )
+           (respect-quota 50 {:x-ratelimit-remaining-day "51"}) => "remains 1"
+           (provided
+             (sleep 100) => "remains 1")
+           (respect-quota 50 {:x-ratelimit-remaining-day "50"}) => (throws Exception "daily quota used")
+           (respect-quota 50 {:x-ratelimit-remaining-day "1"}) => (throws Exception "daily quota used")
+           (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
+           )
 
     (facts :http-content
            (facts "About `http-content"
@@ -91,15 +92,23 @@
            (against-background
              (respect-quota & anything) => nil)
            )
+
+
+    (facts "Abour `take-n-item"
+           (let [http-it (repeat (-> body :response :results))]
+             (take-n-item 3 http-it) => (three-of map?)
+             (take-n-item 3 http-it) => (has every? :apiUrl)
+             (take-n-item 600 http-it) => (n-of #(contains? % :apiUrl) 600)
+
+             (take-n-item :apiUrl 5 http-it) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5)
+             ) 
+           )
+
+    (facts "About `http-singleitems"
+           (map :body (http-singleitems (take 2 api-urls))) => (just (take 2 items))
+           (map :body (http-singleitems {} (take 2 api-urls))) => (just (take 2 items))
+           (against-background
+             (respect-quota) => nil)
+           )
     )
-
-  (facts "Abour `take-n-item"
-                (let [http-it (repeat (-> body :response :results))]
-                  (take-n-item 3 http-it) => (three-of map?)
-                  (take-n-item 3 http-it) => (has every? :apiUrl)
-                  (take-n-item 600 http-it) => (n-of #(contains? % :apiUrl) 600)
-
-                  (take-n-item :apiUrl 5 http-it) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5)
-                  ) 
-                )
   )
