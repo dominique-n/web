@@ -69,9 +69,8 @@
                     @(http/get api-url {:query-params query-params}))
          item-content #(-> % :body (json/parse-string true) :response :content)]
 
-          (map item-content
-               (map http-get api-urls))
-     )))
+     (map item-content
+          (map http-get api-urls)))))
 
 (defn extract-singlitem-text [item]
-  (-> item :fields :body (html/html-snippet)))
+  (-> item :fields :body))

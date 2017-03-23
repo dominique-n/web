@@ -89,5 +89,9 @@
            (against-background
              (respect-quota) => nil)
            )
+
+    (facts "About `extract-singlitem-text"
+           (extract-singlitem-text item-content) => string?
+           (extract-singlitem-text item-content) => seq)
     )
   )
