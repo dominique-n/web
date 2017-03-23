@@ -18,19 +18,24 @@
            :editions "https://content.guardianapis.com/editions"
            :item "https://content.guardianapis.com/"})
 
-(defn respect-quota [headers]
-  (if (-> headers :x-ratelimit-remaining-day Integer. pos?)
-    (Thread/sleep 100)
-    (throw (Exception. "daily quota used"))))
+(defn respect-quota 
+  ([headers] (respect-quota 0 headers))
+  ([page-size headers]
+   (let [remaining-queries (-> headers :x-ratelimit-remaining-day Integer.)
+         projected-queries (- remaining-queries page-size)]
+     (if (pos? projected-queries)
+       (Thread/sleep 100)
+       (throw (Exception. "daily quota used"))))))
 
 (defn http-iterate [endpoint query-params]
   (let [query-params0 {:api-key *api-key* :format "json" :page-size 50 :timeout 1000}
         query-params (merge  query-params0 query-params)
-        http-get (partial http/get (endpoint urls))]
+        http-get (partial http/get (endpoint urls))
+        *respect-quota (partial respect-quota (:page-size query-params))]
     (->> {:page 0}
          (iterate (fn [{page :page headers :headers}]
                     (if page
-                      (do (if headers (respect-quota headers))
+                      (do (if headers (*respect-quota headers))
                           (if (nil? page) (println "nil page enters loop"))
                           (let [page (inc page)
                                 query-params (assoc query-params :page page)
@@ -52,4 +57,10 @@
 (defn take-n-item 
   ([n http-it] (take-n-item identity n http-it))
   ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
+
+(defn http-singleitem 
+  ([api-url])
+  ([query-params api-url]
+   (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)]
+     @(http/get api-url {:query-params query-params}))))
 

@@ -15,15 +15,21 @@
             [clojure.java.jdbc :as jdbc]
             ))
 
-;(let [path "dev-resources/guardian/"
-      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      ;body (json/parse-string (:body http-response) true)]
-  ;;(println (-> http-response :headers keys))
-  ;;(println (-> http-response :headers))
-  ;;(println (-> body :response :results first :apiUrl))
-  ;)
 
 (def api-key (-> creds/portfolio :guardian :api-key))
+(println api-key)
+
+;(let [path "dev-resources/guardian/"
+      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
+      ;body (json/parse-string (:body http-response) true)
+      ;url (-> body :response :results first :apiUrl)]
+  ;;(println (-> http-response :headers keys))
+  ;;(println (-> http-response :headers))
+  ;(println (-> body :response :results first :apiUrl))
+  ;(def single @(http/get url {:query-params {:format "json" :api-key api-key :show-fields ["headline" "body"]}}))
+  ;)
+
+;(-> single :body (json/parse-string true) :response :content)
 
 (let [path "dev-resources/guardian/"
       http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
@@ -35,6 +41,11 @@
     (facts "About `respect-quota"
                   (respect-quota {:x-ratelimit-remaining-day "1"}) => nil?
                   (respect-quota {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
+
+                  (respect-quota 50 {:x-ratelimit-remaining-day "51"}) => nil?
+                  (respect-quota 50 {:x-ratelimit-remaining-day "50"}) => (throws Exception "daily quota used")
+                  (respect-quota 50 {:x-ratelimit-remaining-day "1"}) => (throws Exception "daily quota used")
+                  (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
                   )
 
     (facts :http-iterate
@@ -65,7 +76,7 @@
                      (http/get & anything) => (future {:status 200 :body response}))))
            ;;don't quotas slow down testing
            (against-background
-             (respect-quota anything) => nil)
+             (respect-quota & anything) => nil)
            )
     )
 
