@@ -66,6 +66,12 @@
    (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)
          http-get (fn [api-url] 
                     (respect-quota)
-                    @(http/get api-url {:query-params query-params}))]
-     (map http-get api-urls))))
+                    @(http/get api-url {:query-params query-params}))
+         item-content #(-> % :body (json/parse-string true) :response :content)]
 
+          (map item-content
+               (map http-get api-urls))
+     )))
+
+(defn extract-singlitem-text [item]
+  (-> item :fields :body (html/html-snippet)))

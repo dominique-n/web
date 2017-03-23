@@ -16,36 +16,15 @@
             ))
 
 
-(def api-key (-> creds/portfolio :guardian :api-key))
-;(println api-key)
-
-;(let [path "dev-resources/guardian/"
-      ;http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
-      ;body (json/parse-string (:body http-response) true)
-      ;api-urls (->> body :response :results (mapv :apiUrl))
-      ;api-url (first api-urls)
-      ;items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
-      ;]
-  ;(println api-url)
-  ;(println (first items))
-  ;;(println (-> http-response :headers keys))
-  ;;(println (-> http-response :headers))
-  ;;(println (-> body :response :results first :apiUrl))
-  ;;(def single @(http/get url {:query-params {:format "json" :api-key api-key :show-fields ["headline" "body"]}}))
-  ;)
-
-;(-> single :body (json/parse-string true) :response :content)
-
 (let [path "dev-resources/guardian/"
       http-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
       body (json/parse-string (:body http-response) true)
-      api-urls (->> body :response :results (mapv :apiUrl))
-      items (mapv first (map #(re-seq #"/[^/]+$" %) api-urls))
+      api-url (->> body :response :results first :apiUrl)
+      item (-> (str path "singleitems_http_response.txt") slurp (json/parse-string true))
+      item-content (-> (str path "singleitems_content.txt") slurp (json/parse-string true))
       ] 
-  ;(println (first items))
   (with-fake-http [(re-pattern (:content urls)) http-response
-                   (first api-urls) (first items)
-                   (second api-urls) (second items)
+                   api-url item
                    ]
 
     (facts "About `respect-quota"
@@ -105,8 +84,8 @@
            )
 
     (facts "About `http-singleitems"
-           (map :body (http-singleitems (take 2 api-urls))) => (just (take 2 items))
-           (map :body (http-singleitems {} (take 2 api-urls))) => (just (take 2 items))
+           (first (http-singleitems [api-url])) => item-content
+           (first (http-singleitems {} [api-url])) => item-content
            (against-background
              (respect-quota) => nil)
            )
