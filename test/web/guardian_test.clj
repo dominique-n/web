@@ -41,7 +41,6 @@
            (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
            )
 
-
     (facts :http-content
            (facts "About `http-content"
                   (count (http-content {:q "brexit"})) => 263
@@ -73,7 +72,6 @@
              (respect-quota & anything) => nil)
            )
 
-
     (facts "Abour `take-n-item"
            (let [http-it (repeat (-> body :response :results))]
              (take-n-item 3 http-it) => (three-of map?)
@@ -84,7 +82,6 @@
              ) 
            )
 
-
     (facts "About `http-singleitems"
            (first (http-singleitems [api-url])) => item-content
            (first (http-singleitems {} [api-url])) => item-content
@@ -92,13 +89,11 @@
              (respect-quota) => nil)
            )
 
-
     (facts "About `extract-singlitem-text"
            (extract-singlitem-text item-content) => string?
            (extract-singlitem-text item-content) => seq)
     )
   
-
   (future-facts :online
                   (let [content-response (take 2 (http-content {:q "brexit" :page-size 3}))
                         api-urls (take-n-item :apiUrl 100 content-response)
@@ -120,5 +115,7 @@
                            docs =not=> (has some empty?)
                            (set docs) => (two-of string?)
                            )
-                    ))
+                    )
+                  )
+
 )
