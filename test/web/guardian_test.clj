@@ -41,6 +41,7 @@
            (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
            )
 
+
     (facts :http-content
            (facts "About `http-content"
                   (count (http-content {:q "brexit"})) => 263
@@ -83,6 +84,7 @@
              ) 
            )
 
+
     (facts "About `http-singleitems"
            (first (http-singleitems [api-url])) => item-content
            (first (http-singleitems {} [api-url])) => item-content
@@ -90,8 +92,33 @@
              (respect-quota) => nil)
            )
 
+
     (facts "About `extract-singlitem-text"
            (extract-singlitem-text item-content) => string?
            (extract-singlitem-text item-content) => seq)
     )
-  )
+  
+
+  (future-facts :online
+                  (let [content-response (take 2 (http-content {:q "brexit" :page-size 3}))
+                        api-urls (take-n-item :apiUrl 100 content-response)
+                        singleitems-response (take 2 (http-singleitems api-urls))
+                        docs (mapv extract-singlitem-text singleitems-response)
+                        ]
+
+                    (facts "`http-content should retrieve meaningful data"
+                           content-response => (two-of seq)
+                           api-urls => (six-of #(re-find #"^http" %))
+                           (set api-urls) => (six-of anything)
+                           )
+
+
+                    (facts "`http-singleitems should return meaningful data"
+                           singleitems-response => (two-of map?)
+                           singleitems-response => (has every? :fields)
+                           docs => (two-of string?)
+                           docs =not=> (has some empty?)
+                           (set docs) => (two-of string?)
+                           )
+                    ))
+)
