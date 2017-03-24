@@ -120,3 +120,4 @@
 (not= "hello" "hello")
 (set [1 2 1])
 (count (set [1 2]))
+(count (set [1 2]))¨

@@ -30,10 +30,11 @@
        (sleep 100)
        (throw (Exception. "daily quota used"))))))
 
-(defn http-content [query-params]
+(defn http-iterate [endpoint query-params]
+  (assert (contains? #{:content :tags} endpoint) "iterateble endoints are [:content :tags]")
   (let [query-params0 {:api-key *api-key* :format "json" :page-size 50 :timeout 1000}
         query-params (merge  query-params0 query-params)
-        http-get (partial http/get (:content urls))
+        http-get (partial http/get (endpoint urls))
         *respect-quota (partial respect-quota (:page-size query-params))]
     (->> {:page 0}
          (iterate (fn [{page :page headers :headers}]
