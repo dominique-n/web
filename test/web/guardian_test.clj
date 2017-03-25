@@ -73,6 +73,16 @@
                           (http-iterate :content {:q "brexit"}) => (throws Exception "api status: not ok")
                           (provided
                             (http/get & anything) => (future {:status 200 :body response}))))
+                  (let [body (json/generate-string {:response {:status "ok"
+                                                               :pages 1
+                                                               :results "results"}})] 
+                    (fact "`http-iterate should stop when no more pages"
+                          (http-iterate api-url) => seq
+                          (http-iterate api-url) => (one-of "results")
+                          (against-background
+                            (http/get & anything) => (future {:status 200 :body body}))
+                          )
+                    )
                   (against-background
                     ;;don't quotas slow down testing
                     (respect-quota & anything) => nil)
@@ -126,36 +136,36 @@
 
 (future-facts "Online test should not be run frequently"
 
-       (let [content-response (take 2 (http-iterate tag-api-url))
-             api-urls (take-n-item :apiUrl 500 content-response)
-             ] 
-         (future-facts "when `http-iterate takes only apiUrl"
-                content-response => (two-of seq)
-                api-urls => (n-of #(re-find #"^http" %) 100)
-                (set api-urls) => (n-of anything 100)
-                ))
+              (let [content-response (take 2 (http-iterate tag-api-url))
+                    api-urls (take-n-item :apiUrl 500 content-response)
+                    ] 
+                (future-facts "when `http-iterate takes only apiUrl"
+                              content-response => (two-of seq)
+                              api-urls => (n-of #(re-find #"^http" %) 100)
+                              (set api-urls) => (n-of anything 100)
+                              ))
 
-       (let [content-response (take 2 (http-iterate :content {:q "brexit" :page-size 3}))
-             api-urls (take-n-item :apiUrl 100 content-response)
-             singleitems-response (take 2 (http-singleitems api-urls))
-             docs (mapv extract-singlitem-text singleitems-response)
-             ]
+              (let [content-response (take 2 (http-iterate :content {:q "brexit" :page-size 3}))
+                    api-urls (take-n-item :apiUrl 100 content-response)
+                    singleitems-response (take 2 (http-singleitems api-urls))
+                    docs (mapv extract-singlitem-text singleitems-response)
+                    ]
 
-         (future-facts "when `http-iterate takes two args"
-                       content-response => (two-of seq)
-                       api-urls => (six-of #(re-find #"^http" %))
-                       (set api-urls) => (six-of anything)
-                       )
+                (future-facts "when `http-iterate takes two args"
+                              content-response => (two-of seq)
+                              api-urls => (six-of #(re-find #"^http" %))
+                              (set api-urls) => (six-of anything)
+                              )
 
 
-         (future-facts "`http-singleitems should return meaningful data"
-                       singleitems-response => (two-of map?)
-                       singleitems-response => (has every? :fields)
-                       docs => (two-of string?)
-                       docs =not=> (has some empty?)
-                       (set docs) => (two-of string?)
-                       )
-         )
-       )
+                (future-facts "`http-singleitems should return meaningful data"
+                              singleitems-response => (two-of map?)
+                              singleitems-response => (has every? :fields)
+                              docs => (two-of string?)
+                              docs =not=> (has some empty?)
+                              (set docs) => (two-of string?)
+                              )
+                )
+              )
 
 )
