@@ -28,10 +28,11 @@
       http-tags-response (-> (str path "tags_http_response.txt") slurp (json/parse-string true))
       tags-body (json/parse-string (:body http-tags-response) true)
       tags-results (-> tags-body :response :results)
+      tag-api-url (-> tags-results first :apiUrl)
       ] 
-  (with-fake-http [(re-pattern (:content urls)) http-content-response
+  (with-fake-http [(re-pattern (:content *endpoints)) http-content-response
                    api-url item
-                   (re-pattern (:tags urls))  http-tags-response
+                   (re-pattern (:tags *endpoints))  http-tags-response
                    ]
 
     (facts "About `respect-quota"
@@ -47,6 +48,9 @@
            (respect-quota 50 {:x-ratelimit-remaining-day "1"}) => (throws Exception "daily quota used")
            (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
            )
+
+    (facts "About `http-get-apiurl"
+           (http-get-apiurl api-url) => item)
 
     (facts :http-iterate
            (facts "http-iterate :content"
@@ -120,28 +124,38 @@
            (extract-singlitem-text item-content) => seq)
     )
 
-(future-facts :online
-              (let [content-response (take 2 (http-iterate :content {:q "brexit" :page-size 3}))
-                    api-urls (take-n-item :apiUrl 100 content-response)
-                    singleitems-response (take 2 (http-singleitems api-urls))
-                    docs (mapv extract-singlitem-text singleitems-response)
-                    ]
+(future-facts "Online test should not be run frequently"
 
-                (facts "`http-iterate should retrieve meaningful data"
+       (let [content-response (take 2 (http-iterate tag-api-url))
+             api-urls (take-n-item :apiUrl 500 content-response)
+             ] 
+         (future-facts "when `http-iterate takes only apiUrl"
+                content-response => (two-of seq)
+                api-urls => (n-of #(re-find #"^http" %) 100)
+                (set api-urls) => (n-of anything 100)
+                ))
+
+       (let [content-response (take 2 (http-iterate :content {:q "brexit" :page-size 3}))
+             api-urls (take-n-item :apiUrl 100 content-response)
+             singleitems-response (take 2 (http-singleitems api-urls))
+             docs (mapv extract-singlitem-text singleitems-response)
+             ]
+
+         (future-facts "when `http-iterate takes two args"
                        content-response => (two-of seq)
                        api-urls => (six-of #(re-find #"^http" %))
                        (set api-urls) => (six-of anything)
                        )
 
 
-                (facts "`http-singleitems should return meaningful data"
+         (future-facts "`http-singleitems should return meaningful data"
                        singleitems-response => (two-of map?)
                        singleitems-response => (has every? :fields)
                        docs => (two-of string?)
                        docs =not=> (has some empty?)
                        (set docs) => (two-of string?)
                        )
-                )
-              )
+         )
+       )
 
 )

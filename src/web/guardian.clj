@@ -12,11 +12,11 @@
 
 (def ^:dynamic *api-key* (-> creds/portfolio :guardian :api-key))
 
-(def urls {:content "https://content.guardianapis.com/search"
-           :tags "http://content.guardianapis.com/tags"
-           :sections "https://content.guardianapis.com/sections"
-           :editions "https://content.guardianapis.com/editions"
-           :item "https://content.guardianapis.com/"})
+(def *endpoints {:content "https://content.guardianapis.com/search"
+                 :tags "http://content.guardianapis.com/tags"
+                 :sections "https://content.guardianapis.com/sections"
+                 :editions "https://content.guardianapis.com/editions"
+                 :item "https://content.guardianapis.com/"})
 
 (defn sleep [ms] (Thread/sleep ms))
 
@@ -30,32 +30,43 @@
        (sleep 100)
        (throw (Exception. "daily quota used"))))))
 
-(defn http-iterate [endpoint query-params]
-  (assert (contains? #{:content :tags} endpoint) "iterateble endoints are [:content :tags]")
-  (let [query-params0 {:api-key *api-key* :format "json" :page-size 50 :timeout 1000}
-        query-params (merge  query-params0 query-params)
-        http-get (partial http/get (endpoint urls))
-        *respect-quota (partial respect-quota (:page-size query-params))]
-    (->> {:page 0}
-         (iterate (fn [{page :page headers :headers}]
-                    (if page
-                      (do (if headers (*respect-quota headers))
-                          (let [page (inc page)
-                                query-params (assoc query-params :page page)
-                                {:keys [status headers body error opts]} @(http-get {:query-params query-params})
-                                response (:response (json/parse-string body true))
-                                *status (:status response)
-                                {:keys [pages pageSize results total]} response
-                                ]
-                            (cond
-                              error (throw (Exception. error))
-                              (not= status 200) (throw (Exception. (str "status: " status)))
-                              (not= *status "ok") (throw (Exception. (str "api status: " *status)))
-                              (= page pages) {:results results}
-                              :else {:page page :headers headers :results results})))
-                      )))
-    next (take-while identity)
-    (map :results))))
+(def *query-params {:api-key *api-key* 
+                    :format "json" :page-size 50 :show-fields ["headline" "body"]
+                    :timeout 1000})
+
+(defn http-get-apiurl [api-url]
+  @(http/get api-url {:query-params *query-params}))
+
+(defn http-iterate 
+  ([api-url] (http-iterate api-url {}))
+  ([endpoint query-params]
+   (if (keyword? endpoint) 
+     (do (assert (contains? #{:content :tags} endpoint) "iterateble endoints are [:content :tags]")
+         (http-iterate (endpoint *endpoints) query-params))
+     (let [query-params (merge  *query-params query-params)
+           ;http-get (partial http/get (endpoint urls))
+           http-get (partial http/get endpoint)
+           *respect-quota (partial respect-quota (:page-size query-params))]
+       (->> {:page 0}
+            (iterate (fn [{page :page headers :headers}]
+                       (if page
+                         (do (if headers (*respect-quota headers))
+                             (let [page (inc page)
+                                   query-params (assoc query-params :page page)
+                                   {:keys [status headers body error opts]} @(http-get {:query-params query-params})
+                                   response (:response (json/parse-string body true))
+                                   *status (:status response)
+                                   {:keys [pages pageSize results total]} response
+                                   ]
+                               (cond
+                                 error (throw (Exception. error))
+                                 (not= status 200) (throw (Exception. (str "status: " status)))
+                                 (not= *status "ok") (throw (Exception. (str "api status: " *status)))
+                                 (= page pages) {:results results}
+                                 :else {:page page :headers headers :results results})))
+                         )))
+            next (take-while identity)
+            (map :results))))))
 
 (defn take-n-item 
   ([n http-it] (take-n-item identity n http-it))
@@ -64,7 +75,7 @@
 (defn http-singleitems 
   ([api-urls] (http-singleitems {} api-urls))
   ([query-params api-urls]
-   (let [query-params (merge {:format "json" :api-key *api-key* :show-fields ["headline" "body"]} query-params)
+   (let [query-params (merge *query-params  query-params)
          http-get (fn [api-url] 
                     (respect-quota)
                     @(http/get api-url {:query-params query-params}))
@@ -75,3 +86,6 @@
 
 (defn extract-singlitem-text [item]
   (-> item :fields :body))
+
+(defn http-section [query-params]
+  )
