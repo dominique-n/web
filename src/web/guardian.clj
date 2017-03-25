@@ -86,6 +86,3 @@
 
 (defn extract-singlitem-text [item]
   (-> item :fields :body))
-
-(defn http-section [query-params]
-  )
