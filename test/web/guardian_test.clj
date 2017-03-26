@@ -150,6 +150,17 @@
   (facts "ABout  `get-section-total"
          (get-section-total (first sections-api-url)) => 27766
          (get-section-total (first sections-id)) => 27766
+         (against-background
+           (respect-quota) => nil)
+         )
+
+  (facts "About `map-section-total"
+         (let [api-url (first sections-api-url)
+               id (first sections-id)] 
+           (map-section-total [api-url api-url]) => (two-of {:section api-url :total 27766})
+           (map-section-total [id id]) => (two-of {:section id :total 27766}))
+         (against-background
+           (respect-quota) => nil)
          )
   )
 

@@ -96,7 +96,7 @@
    :else @(http/get (:content *endpoints) {:query-params (assoc *query-params :sectionId q)})))
 
 (defn get-section-total [q]
-  (-> q http-content-section get-body :total)
-  )
+  (-> q http-content-section get-body :total))
 
-(defn map-section-total [qs])
+(defn map-section-total [qs]
+  (map #(hash-map :section % :total (get-section-total %)) qs))
