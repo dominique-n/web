@@ -29,12 +29,21 @@
       tags-body (json/parse-string (:body http-tags-response) true)
       tags-results (-> tags-body :response :results)
       tag-api-url (-> tags-results first :apiUrl)
+
+      ;;section data
+      http-sections-response (-> (str path "sections_http_response.txt") slurp (json/parse-string true))
+      sections (-> http-sections-response get-body :results)
+      sections-id (mapv :id sections)
+      sections-api-url (mapv :apiUrl sections)
+      http-section-content-response (-> (str path "section_content_http_response.txt") slurp (json/parse-string true))
+      section-body (-> http-section-content-response get-body)
       ] 
   (with-fake-http [(re-pattern (:content *endpoints)) http-content-response
                    api-url item
                    (re-pattern (:tags *endpoints))  http-tags-response
+                   (first sections-api-url) http-section-content-response
+                   #"sectionId=culture" http-section-content-response
                    ]
-
     (facts "About `respect-quota"
            (respect-quota {:x-ratelimit-remaining-day "1"}) => "remains 1"
            (provided
@@ -86,26 +95,27 @@
                   (against-background
                     ;;don't quotas slow down testing
                     (respect-quota & anything) => nil)
+
+
+                  (facts "About `http-iterate :content"
+                         (count (http-iterate :content {:q "brexit"})) => 263
+                         (flatten1 (http-iterate :content {:q "brexit"})) => (n-of map? 13150)
+                         (flatten1 (http-iterate :content {:q "brexit"})) => (has every? #(contains? % :apiUrl))
+                         (against-background
+                           ;;don't quotas slow down testing
+                           (respect-quota & anything) => nil)
+                         ) 
+
+                  (facts "http-iterate :tags"
+                         (http-iterate :tags {:q "culture"}) => (n-of seq 81)
+                         (flatten1 (http-iterate :tags {:q "culture"})) => (n-of map? 810)
+                         (flatten1 (http-iterate :tags {:q "culture"})) => (has every? #(contains? % :apiUrl))
+                         (against-background
+                           ;;don't quotas slow down testing
+                           (respect-quota & anything) => nil)
+                         )
                   )
-
-    (facts "About `http-iterate :content"
-           (count (http-iterate :content {:q "brexit"})) => 263
-           (flatten1 (http-iterate :content {:q "brexit"})) => (n-of map? 13150)
-           (flatten1 (http-iterate :content {:q "brexit"})) => (has every? #(contains? % :apiUrl))
-           (against-background
-             ;;don't quotas slow down testing
-             (respect-quota & anything) => nil)
-           ) 
-
-    (facts "http-iterate :tags"
-           (http-iterate :tags {:q "culture"}) => (n-of seq 81)
-           (flatten1 (http-iterate :tags {:q "culture"})) => (n-of map? 810)
-           (flatten1 (http-iterate :tags {:q "culture"})) => (has every? #(contains? % :apiUrl))
-           (against-background
-             ;;don't quotas slow down testing
-             (respect-quota & anything) => nil)
            )
-)
 
     (facts "Abour `take-n-item"
            (let [http-content (repeat (-> content-body :response :results))
@@ -129,10 +139,22 @@
              (respect-quota) => nil)
            )
 
-    (facts "About `extract-singlitem-text"
-           (extract-singlitem-text item-content) => string?
-           (extract-singlitem-text item-content) => seq)
-    )
+(facts "About `extract-singlitem-text"
+       (extract-singlitem-text item-content) => string?
+       (extract-singlitem-text item-content) => seq
+       )
+)
+
+(with-fake-http [(first sections-api-url) http-section-content-response
+                 (re-pattern (:content *endpoints)) http-section-content-response]
+  (facts "ABout  `get-section-total"
+         (get-section-total (first sections-api-url)) => 27766
+         (get-section-total (first sections-id)) => 27766
+         )
+  )
+
+)
+
 
 (future-facts "Online test should not be run frequently"
 
@@ -168,4 +190,4 @@
                 )
               )
 
-)
+

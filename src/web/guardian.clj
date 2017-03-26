@@ -84,5 +84,19 @@
      (map item-content
           (map http-get api-urls)))))
 
+(defn get-body [http-response]
+  (-> http-response :body (json/parse-string true) :response))
+
 (defn extract-singlitem-text [item]
   (-> item :fields :body))
+
+(defn http-content-section [q]
+  (cond 
+   (re-find #"^http" q) @(http/get q {:query-params *query-params})
+   :else @(http/get (:content *endpoints) {:query-params (assoc *query-params :sectionId q)})))
+
+(defn get-section-total [q]
+  (-> q http-content-section get-body :total)
+  )
+
+(defn map-section-total [qs])
