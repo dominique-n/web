@@ -102,6 +102,11 @@
 (defn map-section-total [qs]
   (map #(hash-map :section % :total (get-section-total %)) qs))
 
-(defn props [k v counts]
-  (let [sum (reduce + (map v counts))]
-    (map #(hash-map k (k %) :prop (/ (v %) sum)) counts)))
+(defn props 
+  ([k v counts]
+   (let [sum (reduce + (map v counts))]
+     (map #(hash-map k (k %) :prop (/ (v %) sum)) counts)))
+  ([n k v counts]
+   (->> (props k v counts)
+        (map #(hash-map k (k %) :n (long (* (:prop %) n))))
+        (filter #(pos? (:n %))))))

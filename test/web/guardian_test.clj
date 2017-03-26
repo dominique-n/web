@@ -165,8 +165,13 @@
   )
 
 (facts "About `props"
-       (props :id :count [{:id "a" :count 1} {:id "b" :count 3}]) => (just [{:id "a" :prop 1/4} {:id "b" :prop 3/4}]))
+       (let [sections [{:id "a" :count 1} {:id "b" :count 3}]]
+         (props :id :count sections) => (just [{:id "a" :prop 1/4} {:id "b" :prop 3/4}])
+         (props 5 :id :count sections) => (just [{:id "a" :n 1} {:id "b" :n 3}])
+         (props 2 :id :count sections) => (just [{:id "b" :n 1}])
+         )
 
+       )
 )
 
 
