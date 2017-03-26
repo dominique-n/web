@@ -164,6 +164,9 @@
          )
   )
 
+(facts "About `props"
+       (props :id :count [{:id "a" :count 1} {:id "b" :count 3}]) => (just [{:id "a" :prop 1/4} {:id "b" :prop 3/4}]))
+
 )
 
 

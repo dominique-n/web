@@ -91,6 +91,7 @@
   (-> item :fields :body))
 
 (defn http-content-section [q]
+  (respect-quota)
   (cond 
    (re-find #"^http" q) @(http/get q {:query-params *query-params})
    :else @(http/get (:content *endpoints) {:query-params (assoc *query-params :sectionId q)})))
@@ -100,3 +101,7 @@
 
 (defn map-section-total [qs]
   (map #(hash-map :section % :total (get-section-total %)) qs))
+
+(defn props [k v counts]
+  (let [sum (reduce + (map v counts))]
+    (map #(hash-map k (k %) :prop (/ (v %) sum)) counts)))
