@@ -20,7 +20,7 @@
       ;;:content data
       http-content-response (-> (str path "content_http_response.txt") slurp (json/parse-string true))
       content-body (json/parse-string (:body http-content-response) true)
-      api-url (->> content-body :response :results first :apiUrl)
+      content-api-url (->> content-body :response :results first :apiUrl)
       item (-> (str path "singleitems_http_response.txt") slurp (json/parse-string true))
       item-content (-> (str path "singleitems_content.txt") slurp (json/parse-string true))
 
@@ -39,7 +39,7 @@
       section-body (-> http-section-content-response get-body)
       ] 
   (with-fake-http [(re-pattern (:content *endpoints)) http-content-response
-                   api-url item
+                   content-api-url item
                    (re-pattern (:tags *endpoints))  http-tags-response
                    (first sections-api-url) http-section-content-response
                    #"sectionId=culture" http-section-content-response
@@ -59,7 +59,7 @@
            )
 
     (facts "About `http-get-apiurl"
-           (http-get-apiurl api-url) => item)
+           (http-get-apiurl content-api-url) => item)
 
     (facts :http-iterate
            (facts "http-iterate :content"
@@ -86,8 +86,8 @@
                                                                :pages 1
                                                                :results "results"}})] 
                     (fact "`http-iterate should stop when no more pages"
-                          (http-iterate api-url) => seq
-                          (http-iterate api-url) => (one-of "results")
+                          (http-iterate content-api-url) => seq
+                          (http-iterate content-api-url) => (one-of "results")
                           (against-background
                             (http/get & anything) => (future {:status 200 :body body}))
                           )
@@ -135,8 +135,8 @@
            )
 
     (facts "About `http-singleitem"
-           (http-singleitem api-url) => item-content
-           (http-singleitem api-url {}) => item-content
+           (http-singleitem content-api-url) => item-content
+           (http-singleitem content-api-url {}) => item-content
            (against-background
              (respect-quota) => nil)
            )
@@ -202,6 +202,10 @@
                   (retrieve-sections-sample {section-api-url 25}) => (has every? #(not= (:section %) 
                                                                                         (:api-url %))))
            )))
+
+;(with-fake-http [(re-pattern (:content *endpoints)) http-content-response]
+  ;(let [section-article-api-url {:section "section" :api-url }])
+;)
 )
 
 
