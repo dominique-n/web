@@ -134,9 +134,9 @@
              ) 
            )
 
-    (facts "About `http-singleitems"
-           (first (http-singleitems [api-url])) => item-content
-           (first (http-singleitems {} [api-url])) => item-content
+    (facts "About `http-singleitem"
+           (http-singleitem api-url) => item-content
+           (http-singleitem api-url {}) => item-content
            (against-background
              (respect-quota) => nil)
            )
@@ -217,7 +217,7 @@
 
               (let [content-response (take 2 (http-iterate :content {:q "brexit" :page-size 3}))
                     api-urls (take-n-item :apiUrl 100 content-response)
-                    singleitems-response (take 2 (http-singleitems api-urls))
+                    singleitems-response (take 2 (map http-singleitem api-urls))
                     docs (mapv extract-singlitem-text singleitems-response)]
 
                 (future-facts "when `http-iterate takes two args"
@@ -227,7 +227,7 @@
                               )
 
 
-                (future-facts "`http-singleitems should return meaningful data"
+                (future-facts "`http-singleitem should return meaningful data"
                               singleitems-response => (two-of map?)
                               singleitems-response => (has every? :fields)
                               docs => (two-of string?)

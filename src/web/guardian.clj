@@ -72,17 +72,14 @@
   ([n http-it] (take-n-item identity n http-it))
   ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
 
-(defn http-singleitems 
-  ([api-urls] (http-singleitems {} api-urls))
-  ([query-params api-urls]
-   (let [query-params (merge *query-params  query-params)
-         http-get (fn [api-url] 
-                    (respect-quota)
-                    @(http/get api-url {:query-params query-params}))
+(defn http-singleitem 
+  ([api-url] (http-singleitem api-url {}))
+  ([api-url query-params]
+   (let [query-params (merge *query-params query-params)
          item-content #(-> % :body (json/parse-string true) :response :content)]
-
-     (map item-content
-          (map http-get api-urls)))))
+     (respect-quota)
+     (item-content
+          @(http/get api-url {:query-params query-params})))))
 
 (defn get-body [http-response]
   (-> http-response :body (json/parse-string true) :response))
