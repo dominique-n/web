@@ -118,4 +118,10 @@
 (defn make-sections-size [target target-n world-count world-n]
   (assoc (props world-n world-count) target target-n))
 
-(defn retrieve-sections-sample [sections-count])
+(defn retrieve-sections-sample [sections-count]
+  (let [section (first (keys sections-count))
+        http-it (if (re-find #"^http" section) http-iterate
+                  #(http-iterate :content {:sectionId %}))]
+    (for [[section cnt] sections-count, 
+          api-url (take-n-item :apiUrl cnt (http-it section))]
+      {:section section :api-url api-url})))

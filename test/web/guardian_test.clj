@@ -182,6 +182,19 @@
        (let [world-count [{:section "dogs" :total 30} {:section "cats" :total 20}]]
          (make-sections-size "culture" 10 world-count 1000)) => {"culture" 10 "dogs" 600 "cats" 400}
        )
+
+(with-fake-http [(first sections-api-url) http-section-content-response
+                 (re-pattern (:content *endpoints)) http-section-content-response]
+  (let [section-api-url (first sections-api-url)
+        ]
+    (facts "About `retrieve-sections-sample"
+           (retrieve-sections-sample {section-api-url 25}) 
+           => (n-of (just {:section string? :api-url #(re-find #"^https" %)}) 25)
+           (set (map :section (retrieve-sections-sample {section-api-url 25}))) 
+           => (one-of section-api-url)
+           (retrieve-sections-sample {section-api-url 25})
+           => (has every? #(not= (:section %) (:api-url %)))
+           )))
 )
 
 
