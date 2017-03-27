@@ -121,10 +121,10 @@
            (let [http-content (repeat (-> content-body :response :results))
                  http-tags (repeat (-> tags-body :response :results))]
              (facts "should work on content endpoint"
-                   (take-n-item 3 http-content) => (three-of map?)
-                   (take-n-item 3 http-content) => (has every? :apiUrl)
-                   (take-n-item 600 http-content) => (n-of #(contains? % :apiUrl) 600)
-                   (take-n-item :apiUrl 5 http-content) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5))
+                    (take-n-item 3 http-content) => (three-of map?)
+                    (take-n-item 3 http-content) => (has every? :apiUrl)
+                    (take-n-item 600 http-content) => (n-of #(contains? % :apiUrl) 600)
+                    (take-n-item :apiUrl 5 http-content) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5))
 
              (facts "should work on tags endpoint"
                     (take-n-item 3 http-tags) => (three-of map?)
@@ -201,11 +201,18 @@
                   (set (map :section (retrieve-sections-sample {section-api-url 25}))) => (one-of section-api-url)
                   (retrieve-sections-sample {section-api-url 25}) => (has every? #(not= (:section %) 
                                                                                         (:api-url %))))
-           )))
+           )
+    )
+  )
 
-;(with-fake-http [(re-pattern (:content *endpoints)) http-content-response]
-  ;(let [section-article-api-url {:section "section" :api-url }])
-;)
+(with-fake-http [content-api-url item]
+  (let [section-article-api-url {:section "section" :api-url content-api-url}]
+    (facts "About `retrieve-section-articles" 
+           (retrieve-section-articles [section-article-api-url]) => (just {:section "section" 
+                                                                           :content item-content})
+           )
+    )
+  )
 )
 
 

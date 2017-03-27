@@ -115,6 +115,11 @@
 (defn make-sections-size [target target-n world-count world-n]
   (assoc (props world-n world-count) target target-n))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;integration
+
 (defn retrieve-sections-sample 
   ([sections-count] 
    (assert (<= (reduce + (vals sections-count)) 5000)
@@ -127,3 +132,9 @@
      (for [[section cnt] sections-count, 
            api-url (take-n-item :apiUrl cnt (http-it section))]
        {:section section :api-url api-url}))))
+
+(defn retrieve-section-articles [section-articles-api-url]
+  (map (fn [{:keys [section api-url]}]
+         {:section section 
+          :content (-> api-url http-singleitem )})
+       section-articles-api-url))
