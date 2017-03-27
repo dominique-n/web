@@ -115,3 +115,7 @@
         (filter #(pos? (val %)))
         (into {}))))
 
+(defn make-sections-size [target target-n world-count world-n]
+  (assoc (props world-n world-count) target target-n))
+
+(defn retrieve-sections-sample [sections-count])

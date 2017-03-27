@@ -177,6 +177,11 @@
          )
 
        )
+
+(facts "About `make-sections-size"
+       (let [world-count [{:section "dogs" :total 30} {:section "cats" :total 20}]]
+         (make-sections-size "culture" 10 world-count 1000)) => {"culture" 10 "dogs" 600 "cats" 400}
+       )
 )
 
 
