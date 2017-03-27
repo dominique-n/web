@@ -107,9 +107,11 @@
   ([n counts] (props n :section :total counts))
   ([k v counts]
    (let [sum (reduce + (map v counts))]
-     (map #(hash-map k (k %) :prop (/ (v %) sum)) counts)))
+     (reduce #(assoc %1 (k %2) (/ (v %2) sum))
+             {} counts)))
   ([n k v counts]
    (->> (props k v counts)
-        (map #(hash-map k (k %) :n (long (* (:prop %) n))))
-        (filter #(pos? (:n %))))))
+        (reduce (fn [acc [k v]] (assoc acc k (long (* v n)))) {})
+        (filter #(pos? (val %)))
+        (into {}))))
 

@@ -167,13 +167,13 @@
 (facts "About `props"
        (let [sections [{:section "a" :total 1} {:section "b" :total 3}]
              counts [{:id "a" :count 1} {:id "b" :count 3}]]
-         (props sections) => (just [{:id "a" :prop 1/4} {:id "b" :prop 3/4}])
-         (props 5 sections) => (just [{:id "a" :n 1} {:id "b" :n 3}])
-         (props 2 sections) => (just [{:id "b" :n 1}])
+         (props sections) => (just [{"a"  1/4 "b"  3/4}])
+         (props 5 sections) => (just [{"a" 1 "b" 3}])
+         (props 2 sections) => (just [{"b" 1}])
 
-         (props :id :count counts) => (just [{:id "a" :prop 1/4} {:id "b" :prop 3/4}])
-         (props 5 :id :count counts) => (just [{:id "a" :n 1} {:id "b" :n 3}])
-         (props 2 :id :count counts) => (just [{:id "b" :n 1}])
+         (props :id :count counts) => (just [{"a"  1/4 "b"  3/4}])
+         (props 5 :id :count counts) => (just [{"a" 1 "b" 3}])
+         (props 2 :id :count counts) => (just [{"b" 1}])
          )
 
        )
