@@ -188,6 +188,7 @@
   (let [section-api-url (first sections-api-url)
         ]
     (facts "About `retrieve-sections-sample"
+           (retrieve-sections-sample {section-api-url 5001}) => (throws AssertionError)
            (retrieve-sections-sample {section-api-url 25}) 
            => (n-of (just {:section string? :api-url #(re-find #"^https" %)}) 25)
            (set (map :section (retrieve-sections-sample {section-api-url 25}))) 
