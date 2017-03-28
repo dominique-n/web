@@ -162,8 +162,8 @@
 (with-fake-http [(first sections-api-url) http-section-content-response
                  (re-pattern (:content *endpoints)) http-section-content-response]
   (facts "ABout  `get-section-total"
-         (get-section-total (first sections-api-url)) => 27766
-         (get-section-total (first sections-id)) => 27766
+         (get-section-total (first sections-api-url)) => {:section (first sections-api-url) :total 27766}
+         (get-section-total (first sections-id)) => {:section (first sections-id) :total 27766}
          (against-background
            (respect-quota) => nil)
          )
