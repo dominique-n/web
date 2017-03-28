@@ -146,10 +146,10 @@
                    #(http-iterate :content {:sectionId %}))]
      (for [[section cnt] sections-count, 
            api-url (take-n-item :apiUrl cnt (http-it section))]
-       {:section section :api-url api-url}))))
+       {:section section :api_url api-url}))))
 
 (defn retrieve-section-articles [section-articles-api-url]
-  (map (fn [{:keys [section api-url]}]
+  (map (fn [{:keys [section api_url]}]
          {:section section 
-          :content (-> api-url http-singleitem )})
+          :content (-> api_url http-singleitem )})
        section-articles-api-url))

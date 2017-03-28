@@ -210,18 +210,18 @@
            (fact "should throw when articles retireval cannot be handeled in single day quota" 
                  (retrieve-sections-sample {section-api-url 5001})) => (throws AssertionError)
 
-           (facts "should return a seq of {:section id/url, :api-url }"
+           (facts "should return a seq of {:section id/url, :api_url }"
                   (retrieve-sections-sample {section-api-url 25}) => (n-of (just {:section string? 
-                                                                                  :api-url #(re-find #"^https" %)})
+                                                                                  :api_url #(re-find #"^https" %)})
                                                                            25)
                   (set (map :section (retrieve-sections-sample {section-api-url 25}))) => (one-of section-api-url)
                   (retrieve-sections-sample {section-api-url 25}) => (has every? #(not= (:section %) 
-                                                                                        (:api-url %))))
+                                                                                        (:api_url %))))
            )))
 
 (facts "About `retrieve-section-articles" 
        (with-fake-http [content-api-url item]
-         (let [section-article-api-url {:section "section" :api-url content-api-url}]
+         (let [section-article-api-url {:section "section" :api_url content-api-url}]
            (retrieve-section-articles [section-article-api-url]) => (just {:section "section" 
                                                                            :content item-content}))
          )))
