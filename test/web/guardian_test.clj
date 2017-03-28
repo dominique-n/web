@@ -177,20 +177,18 @@
          (facts "should deal with specific k v keys"
                 (props :id :count counts) => (just [{"a"  1/4 "b"  3/4}])
                 (props 5 :id :count counts) => (just [{"a" 1 "b" 3}])
-                (props 2 :id :count counts) => (just [{"b" 1}]))
-         )
-
+                (props 2 :id :count counts) => (just [{"b" 1}])))
        )
 
 (facts "About `make-sections-size"
-       (let [world-count [{:section "dogs" :total 30} {:section "cats" :total 20}]]
-         (make-sections-size "culture" 10 world-count 1000)) => {"culture" 10 "dogs" 600 "cats" 400}
+       (let [target {:section "culture" :total 1000}
+             world-count [{:section "dogs" :total 30} {:section "cats" :total 20}]]
+         (make-sections-size target world-count 1000)) => {"culture" 1000 "dogs" 600 "cats" 400}
        )
 
 (with-fake-http [(first sections-api-url) http-section-content-response
                  (re-pattern (:content *endpoints)) http-section-content-response]
-  (let [section-api-url (first sections-api-url)
-        ]
+  (let [section-api-url (first sections-api-url)]
     (facts "About `retrieve-sections-sample"
            (fact "should throw when articles retireval cannot be handeled in single day quota" 
                  (retrieve-sections-sample {section-api-url 5001})) => (throws AssertionError)
@@ -201,19 +199,14 @@
                   (set (map :section (retrieve-sections-sample {section-api-url 25}))) => (one-of section-api-url)
                   (retrieve-sections-sample {section-api-url 25}) => (has every? #(not= (:section %) 
                                                                                         (:api-url %))))
-           )
-    )
-  )
+           )))
 
 (with-fake-http [content-api-url item]
   (let [section-article-api-url {:section "section" :api-url content-api-url}]
     (facts "About `retrieve-section-articles" 
            (retrieve-section-articles [section-article-api-url]) => (just {:section "section" 
-                                                                           :content item-content})
-           )
-    )
-  )
-)
+                                                                           :content item-content}))
+    )))
 
 
 (future-facts "Online test should not be run frequently"
@@ -245,7 +238,6 @@
                               docs =not=> (has some empty?)
                               (set docs) => (two-of string?)
                               )
-                )
-              )
+                ))
 
 
