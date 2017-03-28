@@ -58,6 +58,10 @@
            (respect-quota 50 {:x-ratelimit-remaining-day "0"}) => (throws Exception "daily quota used")
            )
 
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;content
+
     (facts "About `http-get-apiurl"
            (http-get-apiurl content-api-url) => item)
 
@@ -134,18 +138,26 @@
              ) 
            )
 
-    (facts "About `http-singleitem"
-           (http-singleitem content-api-url) => item-content
-           (http-singleitem content-api-url {}) => item-content
-           (against-background
-             (respect-quota) => nil)
-           )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;singleitem
+
+(facts "About `http-singleitem"
+       (http-singleitem content-api-url) => item-content
+       (http-singleitem content-api-url {}) => item-content
+       (against-background
+         (respect-quota) => nil)
+       )
 
 (facts "About `extract-singlitem-text"
        (extract-singlitem-text item-content) => string?
        (extract-singlitem-text item-content) => seq
        )
 )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;sections
 
 (with-fake-http [(first sections-api-url) http-section-content-response
                  (re-pattern (:content *endpoints)) http-section-content-response]
@@ -186,12 +198,18 @@
          (make-sections-size target world-count 1000)) => {"culture" 1000 "dogs" 600 "cats" 400}
        )
 
-(with-fake-http [(first sections-api-url) http-section-content-response
-                 (re-pattern (:content *endpoints)) http-section-content-response]
-  (let [section-api-url (first sections-api-url)]
-    (facts "About `retrieve-sections-sample"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;integration
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(facts "About `retrieve-sections-sample"
+       (with-fake-http [(first sections-api-url) http-section-content-response
+                        (re-pattern (:content *endpoints)) http-section-content-response]
+         (let [section-api-url (first sections-api-url)]
            (fact "should throw when articles retireval cannot be handeled in single day quota" 
                  (retrieve-sections-sample {section-api-url 5001})) => (throws AssertionError)
+
            (facts "should return a seq of {:section id/url, :api-url }"
                   (retrieve-sections-sample {section-api-url 25}) => (n-of (just {:section string? 
                                                                                   :api-url #(re-find #"^https" %)})
@@ -201,13 +219,16 @@
                                                                                         (:api-url %))))
            )))
 
-(with-fake-http [content-api-url item]
-  (let [section-article-api-url {:section "section" :api-url content-api-url}]
-    (facts "About `retrieve-section-articles" 
+(facts "About `retrieve-section-articles" 
+       (with-fake-http [content-api-url item]
+         (let [section-article-api-url {:section "section" :api-url content-api-url}]
            (retrieve-section-articles [section-article-api-url]) => (just {:section "section" 
                                                                            :content item-content}))
-    )))
+         )))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;ONLINE TESTS
 
 (future-facts "Online test should not be run frequently"
 

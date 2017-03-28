@@ -10,6 +10,9 @@
             ))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;helpers
+
 (def ^:dynamic *api-key* (-> creds/portfolio :guardian :api-key))
 
 (def *endpoints {:content "https://content.guardianapis.com/search"
@@ -33,6 +36,10 @@
 (def *query-params {:api-key *api-key* 
                     :format "json" :page-size 50 :show-fields ["headline" "body"]
                     :timeout 1000})
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;content
 
 (defn http-get-apiurl [api-url]
   @(http/get api-url {:query-params *query-params}))
@@ -72,6 +79,10 @@
   ([n http-it] (take-n-item identity n http-it))
   ([kw n http-it] (->> http-it flatten1 (take n) (map kw))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;singleitem
+
 (defn http-singleitem 
   ([api-url] (http-singleitem api-url {}))
   ([api-url query-params]
@@ -86,6 +97,10 @@
 
 (defn extract-singlitem-text [item]
   (-> item :fields :body))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;sections
 
 (defn http-content-section [q]
   (respect-quota)
@@ -117,8 +132,8 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;integration
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn retrieve-sections-sample 
   ([sections-count] 
