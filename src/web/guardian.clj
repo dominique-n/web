@@ -106,7 +106,7 @@
   (respect-quota)
   (cond 
    (re-find #"^http" q) @(http/get q {:query-params *query-params})
-   :else @(http/get (:content *endpoints) {:query-params (assoc *query-params :sectionId q)})))
+   :else @(http/get (:content *endpoints) {:query-params (assoc *query-params :section q)})))
 
 (defn get-section-total [q]
   {:section q :total (-> q http-content-section get-body :total)})
