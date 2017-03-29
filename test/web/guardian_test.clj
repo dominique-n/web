@@ -232,7 +232,7 @@
 
 (future-facts "Online test should not be run frequently"
 
-              (let [content-response (take 2 (http-iterate tag-api-url))
+              (let [content-response (take 2 (http-iterate "https://content.guardianapis.com/culture/culture"))
                     api-urls (take-n-item :apiUrl 500 content-response)] 
                 (future-facts "when `http-iterate takes only apiUrl"
                               content-response => (two-of seq)
@@ -244,21 +244,24 @@
                     api-urls (take-n-item :apiUrl 100 content-response)
                     singleitems-response (take 2 (map http-singleitem api-urls))
                     docs (mapv extract-singlitem-text singleitems-response)]
-
                 (future-facts "when `http-iterate takes two args"
                               content-response => (two-of seq)
                               api-urls => (six-of #(re-find #"^http" %))
                               (set api-urls) => (six-of anything)
-                              )
+                              ))
 
 
+              (let [api-url "https://content.guardianapis.com/lifeandstyle/2017/mar/19/wine-and-the-brexit-effect-chile-south-africa"
+                    singleitems-response (take 1 (map http-singleitem [api-url]))
+                    items (mapv extract-singlitem-text singleitems-response)]
                 (future-facts "`http-singleitem should return meaningful data"
-                              singleitems-response => (two-of map?)
+                              singleitems-response => (one-of map?)
                               singleitems-response => (has every? :fields)
-                              docs => (two-of string?)
-                              docs =not=> (has some empty?)
-                              (set docs) => (two-of string?)
-                              )
-                ))
-
-
+                              ;singleitems-response => (has every? #(-> % :fields :headline))
+                              singleitems-response => (has every? #(-> % :fields :body))
+                              singleitems-response => (has every? :tags)
+                              items => (one-of string?)
+                              items =not=> (has some empty?)
+                              (set items) => (one-of string?)
+                              ))
+              )

@@ -34,7 +34,7 @@
        (throw (Exception. "daily quota used"))))))
 
 (def *query-params {:api-key *api-key* 
-                    :format "json" :page-size 50 :show-fields ["headline" "body"]
+                    :format "json" :page-size 50 
                     :timeout 1000})
 
 
@@ -86,7 +86,8 @@
 (defn http-singleitem 
   ([api-url] (http-singleitem api-url {}))
   ([api-url query-params]
-   (let [query-params (merge *query-params query-params)
+   (let [*query-params (assoc *query-params :show-fields ["headline" "body"] :show-tags ["all"])
+         query-params (merge *query-params query-params)
          item-content #(-> % :body (json/parse-string true) :response :content)]
      (respect-quota)
      (item-content
