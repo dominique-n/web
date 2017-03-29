@@ -25,19 +25,26 @@
          (first (jdbc/query *pooled-db* [(str "select count(1) from " table-name ";")])) => #(-> % vals first zero?)
          )
 
+  (facts "About `stringify"
+         (stringify {:a "lol" :b ["troll"]}) => {:a "lol" :b (json/generate-string ["troll"])}
+         )
+
   (facts "About `insert! `insert-multi! `query `execute!"
          (create-table table-name)
          (insert! table-name {:data "inserted"})
          (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 1))
 
+         (insert! table-name {:data {"a" 1}})
+         (json/parse-string (:data (last (query [(str "select * from " table-name)])))) => {"a" 1}
+
          (insert-multi! table-name (repeat 10 {:data "inserted"}))
-         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 11))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 12))
 
          (insert-multi! 3 table-name (repeat 10 {:data "inserted"}))
-         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 21))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 22))
 
          (execute! [(str "insert into " table-name " ('data') values ('inserted')")])
-         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 22))
+         (first (query [(str "select count(1) from " table-name)])) => #(-> % vals first (= 23))
          )
 
   (facts "About `table-exists?"

@@ -125,3 +125,7 @@
 (re-find #"^htt" "http")
 (re-find #"^htt" "lhttp")
 (reduce (fn [acc [k v]] (assoc acc k v)) {} {:a 1 :b 2})
+(seq {})
+(seq {:a 1})
+(seq "1+)
+(seq "1")
