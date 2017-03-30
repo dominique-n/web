@@ -25,8 +25,12 @@
          (first (jdbc/query *pooled-db* [(str "select count(1) from " table-name ";")])) => #(-> % vals first zero?)
          )
 
-  (facts "About `stringify"
-         (stringify {:a "lol" :b ["troll"]}) => {:a "lol" :b (json/generate-string ["troll"])}
+  (facts "About `sqlcompatible"
+         (sqlcompatible {:a "lol" :b "troll"}) => {:a "lol" :b "troll"}
+         (sqlcompatible {"aa" "lol"}) => {:aa "lol"}
+         (sqlcompatible {"a-a" "lol"}) => {:a_a "lol"}
+         (sqlcompatible {:a-a "lol"}) => {:a_a "lol"}
+         (sqlcompatible {:b ["troll"]}) => {:b (json/generate-string ["troll"])}
          )
 
   (facts "About `insert! `insert-multi! `query `execute!"

@@ -58,10 +58,12 @@
                    [:timestamp :datetime "DEFAULT CURRENT_TIMESTAMP"]]
                    columns)))))
 
-(defn stringify [row]
-  (let [aux #(if (string? %) % (json/generate-string %))]
+(defn sqlcompatible [row]
+  (let [format-val #(if (string? %) % (json/generate-string %))
+        format-key #(-> (if (keyword? %) (name %) %)
+                        (clojure.string/replace "-" "_") keyword)]
     (into {}
-          (mapv #(vector (key %) (aux (val %))) row))))
+          (mapv #(vector (format-key (key %)) (format-val (val %))) row))))
 
 (def insert! #(jdbc/insert! *pooled-db* %1 (stringify %2)))
 (def execute! (partial jdbc/execute! *pooled-db*))
