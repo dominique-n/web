@@ -65,12 +65,12 @@
     (into {}
           (mapv #(vector (format-key (key %)) (format-val (val %))) row))))
 
-(def insert! #(jdbc/insert! *pooled-db* %1 (stringify %2)))
+(def insert! #(jdbc/insert! *pooled-db* %1 (sqlcompatible %2)))
 (def execute! (partial jdbc/execute! *pooled-db*))
 (def query (partial jdbc/query *pooled-db*))
 (defn insert-multi! 
-  ([table-name rows] (jdbc/insert-multi! *pooled-db* table-name (map stringify rows)))
-  ([n table-name rows] (doseq [*rows (partition-all n (map stringify rows))]
+  ([table-name rows] (jdbc/insert-multi! *pooled-db* table-name (map sqlcompatible rows)))
+  ([n table-name rows] (doseq [*rows (partition-all n (map sqlcompatible rows))]
                          (jdbc/insert-multi! *pooled-db* table-name *rows))))
 
 (defn table-exists? [table-name]

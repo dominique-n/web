@@ -137,23 +137,26 @@
                     (take-n-item :apiUrl 5 http-tags) => (n-of #(re-seq #"https://content.guardianapis.com/" %) 5))
              ) 
            )
-
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;singleitem
 
-(facts "About `http-singleitem"
-       (http-singleitem content-api-url) => item-content
-       (http-singleitem content-api-url {}) => item-content
-       (against-background
-         (respect-quota) => nil)
-       )
+(with-fake-http [{:url content-api-url 
+                  :query-params (merge *query-params {:show-fields ["headline" "body"]
+                                                      :show-tags ["all"]})} item]
+  (facts "About `http-singleitem"
+         (http-singleitem content-api-url) => item-content
+         (http-singleitem content-api-url {}) => item-content
+         (against-background
+           (respect-quota) => nil)
+         )
 
-(facts "About `extract-singlitem-text"
-       (extract-singlitem-text item-content) => string?
-       (extract-singlitem-text item-content) => seq
-       )
-)
+  (facts "About `extract-singlitem-text"
+         (extract-singlitem-text item-content) => string?
+         (extract-singlitem-text item-content) => seq
+         )
+  )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
