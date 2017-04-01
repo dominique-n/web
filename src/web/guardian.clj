@@ -41,9 +41,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;content
 
-(defn http-get-apiurl [api-url]
-  @(http/get api-url {:query-params *query-params}))
-
 (defn http-iterate 
   ([api-url] (http-iterate api-url {}))
   ([endpoint query-params]

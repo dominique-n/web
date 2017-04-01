@@ -38,12 +38,17 @@
       http-section-content-response (-> (str path "section_content_http_response.txt") slurp (json/parse-string true))
       section-body (-> http-section-content-response get-body)
       ] 
-  (with-fake-http [(re-pattern (:content *endpoints)) http-content-response
+  (with-fake-http [#(and (= (:url %) (:content *endpoints))
+                         (= (-> % :query-params :q) "brexit")
+                         (-> % :query-params :page)) http-content-response
+                   #(and (= (:url %) (:tags *endpoints))
+                         (= (-> % :query-params :q) "culture")
+                         (-> % :query-params :page)) http-tags-response
                    content-api-url item
-                   (re-pattern (:tags *endpoints))  http-tags-response
                    (first sections-api-url) http-section-content-response
                    #"sectionId=culture" http-section-content-response
                    ]
+
     (facts "About `respect-quota"
            (respect-quota {:x-ratelimit-remaining-day "1"}) => "remains 1"
            (provided
@@ -61,9 +66,6 @@
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;content
-
-    (facts "About `http-get-apiurl"
-           (http-get-apiurl content-api-url) => item)
 
     (facts :http-iterate
            (facts "http-iterate :content"
