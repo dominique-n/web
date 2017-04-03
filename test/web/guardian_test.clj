@@ -209,20 +209,32 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (facts "About `retrieve-sections-sample"
-       (with-fake-http [(first sections-api-url) http-section-content-response
-                        (re-pattern (:content *endpoints)) http-section-content-response]
-         (let [section-api-url (first sections-api-url)]
+       (let [section-api-url (first sections-api-url)
+             section (second (re-find #"guardianapis.com/([^/]+)$" section-api-url))]
+         (println section-api-url)
+         (println section)
+         (with-fake-http [section-api-url http-section-content-response
+                          {:url (:content *endpoints) 
+                           :query-params {:section section}} http-section-content-response
+                          (re-pattern (:content *endpoints)) http-section-content-response]
            (fact "should throw when articles retireval cannot be handeled in single day quota" 
-                 (retrieve-sections-sample {section-api-url 5001})) => (throws AssertionError)
+                 (retrieve-sections-sample {section 5001}) => (throws AssertionError)
+                 (retrieve-sections-sample {section-api-url 5001}) => (throws AssertionError))
 
            (facts "should return a seq of {:section id/url, :api_url }"
+                  (retrieve-sections-sample {section 25}) => (n-of (just {:section string? 
+                                                                          :api_url #(re-find #"^https" %)})
+                                                                   25)
                   (retrieve-sections-sample {section-api-url 25}) => (n-of (just {:section string? 
                                                                                   :api_url #(re-find #"^https" %)})
                                                                            25)
+                  (set (map :section (retrieve-sections-sample {section 25}))) => (one-of section)
                   (set (map :section (retrieve-sections-sample {section-api-url 25}))) => (one-of section-api-url)
+                  (retrieve-sections-sample {section 25}) => (has every? #(not= (:section %) 
+                                                                                (:api_url %)))
                   (retrieve-sections-sample {section-api-url 25}) => (has every? #(not= (:section %) 
                                                                                         (:api_url %))))
-           )))
+         )))
 
 (facts "About `retrieve-section-articles" 
        (with-fake-http [content-api-url item]

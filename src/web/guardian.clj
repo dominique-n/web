@@ -141,7 +141,7 @@
   ([quota-check? sections-count]
    (let [section (first (keys sections-count))
          http-it (if (re-find #"^http" section) http-iterate
-                   #(http-iterate :content {:sectionId %}))]
+                   #(http-iterate :content {:section %}))]
      (for [[section cnt] sections-count, 
            api-url (take-n-item :apiUrl cnt (http-it section))]
        {:section section :api_url api-url}))))
